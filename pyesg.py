@@ -241,6 +241,65 @@ class Triangle(object):
 
         return area
 
+class Quadrangle(object):
+    '''
+    An quadrangle on the earth defined by three points p1, p2, p3, and p4.
+    It also can be seen as the relationship between four points.
+
+    Note: p1 -> p2 -> p3 -> p4 should be rotative.
+    '''
+    def __init__(self, p1, p2, p3, p4):
+        if Check.is_rotative(p1, p2, p3, p4) == False:
+            raise ValueError('The given four points are in wrong sequence!')
+
+        self.p1 = p1
+        self.p2 = p2
+        self.p3 = p3
+        self.p4 = p4
+
+    def __str__(self):
+        return str(self.p1) + ' <-> ' + str(self.p2) + ' <-> ' + str(self.p3) + ' <-> ' + str(self.p4)
+
+    def angles(self):
+        '''
+        Treated as two triangles.
+        '''
+        tri1 = Triangle(self.p1, self.p2, self.p4)
+        tri2 = Triangle(self.p2, self.p3, self.p4)
+
+        A, B1, D1 = tri1.angles()
+        C, D2, B2 = tri2.angles()
+
+        B = B1 + B2
+        D = D1 + D2
+
+        return A, B, C, D
+
+    def area(self):
+        '''
+
+        [reference: http://mathworld.wolfram.com/SphericalPolygon.html]
+        '''
+
+        A, B, C, D = self.angles()
+
+        E = A + B + C + D - 2*math.pi
+
+        area = Earth.radius**2 * E
+
+        return area
+
+class Mesh(object):
+    '''
+    Unstructed mesh grids, which is defined by 2 dimenional arrays lat2d and lon2d.
+    '''
+    def __init__(self, lat2d, lon2d):
+        self.lat2d = lat2d
+        self.lon2d = lon2d
+
+    def __str__(self):
+        return str(self.lat2d.shape) + ' x ' + str(self.lon2d.shape)
+
 class Check():
 
     def is_close_enough(v1, v2, e=0.0001):
@@ -263,6 +322,24 @@ class Check():
         elif p1.lat == p2.lat and p1.lon == p2.lon:
             return True
 
+        else:
+            return False
+
+    def is_rotative(p1, p2, p3, p4):
+        '''
+        Check if the given four points are rotative (positive or negative).
+        '''
+        vec12 = np.array([p2.lat-p1.lat, p2.lon-p1.lon])
+        vec23 = np.array([p3.lat-p2.lat, p3.lon-p2.lon])
+        vec34 = np.array([p4.lat-p3.lat, p4.lon-p3.lon])
+        vec41 = np.array([p1.lat-p4.lat, p1.lon-p4.lon])
+
+        n123 = np.cross(vec12, vec23)
+        n234 = np.cross(vec23, vec34)
+        n341 = np.cross(vec34, vec41)
+
+        if np.dot(n123, n234) > 0 and np.dot(n234, n341) > 0:
+            return True
         else:
             return False
 
@@ -380,7 +457,7 @@ class Check():
             is_intersected = False
             return is_intersected, None
 
-    def is_inside(point, triangle):
+    def is_inside_triangle(point, triangle):
         '''
         Check if a given point (lat, lon) is inside the given triangle.
         '''
@@ -430,8 +507,43 @@ class Check():
             num_intersected_points -= 1
 
         if num_intersected_points % 2 == 0:
-            is_inside = False # outside
+            return False # outside
         else:
-            is_inside = True # inside
+            return True # inside
 
-        return is_inside
+    def is_inside_quadrangle(point, quadrangle):
+        '''
+        Check if a given point (lat, lon) is inside the given quadrangle.
+        Treated as two triangles.
+        '''
+        tri1 = Triangle(quadrangle.p1, quadrangle.p2, quadrangle.p4)
+        tri2 = Triangle(quadrangle.p2, quadrangle.p3, quadrangle.p4)
+
+        if Check.is_inside_triangle(point, tri1) or Check.is_inside_triangle(point, tri2):
+            return True
+        else:
+            return False
+
+#class Search():
+    #def polygon(point, mesh):
+        #'''
+        #Search the polygon which the point located in.
+        #'''
+        #nlat = mesh.lat2d.shape[0]
+        #nlon = mesh.lat2d.shape[1]
+        #for i in np.arange(nlat-1):
+            #for j in np.arange(nlon-1):
+                #p11 = Point(lat2d[i,j])
+                #p12 = Point(lat2d[i,j+1])
+                #p21 = Point(lat2d[i+1,j])
+                #p22 = Point(lat2d[i+1,j+1])
+
+                #arc_11_12 = Arc(p11, p12)
+                #arc_11_21 = Arc(p11, p21)
+                #arc_12_22 = Arc(p12, p22)
+                #arc_21_22 = Arc(p21, p22)
+
+    #def triangle(point, mesh):
+        #'''
+        #Search the triangle which the point located in.
+        #'''
