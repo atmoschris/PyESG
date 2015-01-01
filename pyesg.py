@@ -549,79 +549,114 @@ class Search():
 
         while ac > 1 or bd > 1:
 
-            ee, ff = (aa+cc) // 2, (bb+dd) // 2
+            #print(aa, bb, cc, dd)
 
-            p111 = Point(mesh.lat2d[aa,bb], mesh.lon2d[aa,bb])
-            p112 = Point(mesh.lat2d[aa,ff], mesh.lon2d[aa,ff])
-            p121 = Point(mesh.lat2d[ee,bb], mesh.lon2d[ee,bb])
-            p122 = Point(mesh.lat2d[ee,ff], mesh.lon2d[ee,ff])
+            if ac != 1 and bd != 1:
 
-            quadr1 = Quadrangle(p111, p112, p122, p121)
+                ee, ff = (aa+cc) // 2, (bb+dd) // 2
 
-            p211 = Point(mesh.lat2d[aa,ff], mesh.lon2d[aa,ff])
-            p212 = Point(mesh.lat2d[aa,dd], mesh.lon2d[aa,dd])
-            p221 = Point(mesh.lat2d[ee,ff], mesh.lon2d[ee,ff])
-            p222 = Point(mesh.lat2d[ee,dd], mesh.lon2d[ee,dd])
+                p111 = Point(mesh.lat2d[aa,bb], mesh.lon2d[aa,bb])
+                p112 = Point(mesh.lat2d[aa,ff], mesh.lon2d[aa,ff])
+                p121 = Point(mesh.lat2d[ee,bb], mesh.lon2d[ee,bb])
+                p122 = Point(mesh.lat2d[ee,ff], mesh.lon2d[ee,ff])
 
-            quadr2 = Quadrangle(p211, p212, p222, p221)
+                quadr1 = Quadrangle(p111, p112, p122, p121)
 
-            p311 = Point(mesh.lat2d[ee,ff], mesh.lon2d[ee,ff])
-            p312 = Point(mesh.lat2d[ee,dd], mesh.lon2d[ee,dd])
-            p321 = Point(mesh.lat2d[cc,ff], mesh.lon2d[cc,ff])
-            p322 = Point(mesh.lat2d[cc,dd], mesh.lon2d[cc,dd])
+                p211 = Point(mesh.lat2d[aa,ff], mesh.lon2d[aa,ff])
+                p212 = Point(mesh.lat2d[aa,dd], mesh.lon2d[aa,dd])
+                p221 = Point(mesh.lat2d[ee,ff], mesh.lon2d[ee,ff])
+                p222 = Point(mesh.lat2d[ee,dd], mesh.lon2d[ee,dd])
 
-            quadr3 = Quadrangle(p311, p312, p322, p321)
+                quadr2 = Quadrangle(p211, p212, p222, p221)
 
-            p411 = Point(mesh.lat2d[ee,bb], mesh.lon2d[ee,bb])
-            p412 = Point(mesh.lat2d[ee,ff], mesh.lon2d[ee,ff])
-            p421 = Point(mesh.lat2d[cc,bb], mesh.lon2d[cc,bb])
-            p422 = Point(mesh.lat2d[cc,ff], mesh.lon2d[cc,ff])
+                p311 = Point(mesh.lat2d[ee,ff], mesh.lon2d[ee,ff])
+                p312 = Point(mesh.lat2d[ee,dd], mesh.lon2d[ee,dd])
+                p321 = Point(mesh.lat2d[cc,ff], mesh.lon2d[cc,ff])
+                p322 = Point(mesh.lat2d[cc,dd], mesh.lon2d[cc,dd])
 
-            quadr4 = Quadrangle(p411, p412, p422, p421)
+                quadr3 = Quadrangle(p311, p312, p322, p321)
 
-            if Check.is_inside_quadrangle(point, quadr1):
-                if ac > 2:
-                    cc = ee
-                if bd > 2:
-                    dd = ff
+                p411 = Point(mesh.lat2d[ee,bb], mesh.lon2d[ee,bb])
+                p412 = Point(mesh.lat2d[ee,ff], mesh.lon2d[ee,ff])
+                p421 = Point(mesh.lat2d[cc,bb], mesh.lon2d[cc,bb])
+                p422 = Point(mesh.lat2d[cc,ff], mesh.lon2d[cc,ff])
 
-                if ac == 2 and bd == 2:
+                quadr4 = Quadrangle(p411, p412, p422, p421)
+
+                if Check.is_inside_quadrangle(point, quadr1):
                     cc = ee
                     dd = ff
 
-            elif Check.is_inside_quadrangle(point, quadr2):
-                if ac > 2:
-                    cc = ee
-                if bd > 2:
-                    bb = ff
-
-                if ac == 2 and bd == 2:
+                elif Check.is_inside_quadrangle(point, quadr2):
                     cc = ee
                     bb = ff
 
-            elif Check.is_inside_quadrangle(point, quadr3):
-                if ac > 2:
-                    aa = ee
-                if bd > 2:
-                    bb = ff
-
-                if ac == 2 and bd == 2:
+                elif Check.is_inside_quadrangle(point, quadr3):
                     aa = ee
                     bb = ff
 
-            elif Check.is_inside_quadrangle(point, quadr4):
-                if ac > 2:
-                    aa = ee
-                if bd > 2:
-                    dd = ff
-
-                if ac == 2 and bd == 2:
+                elif Check.is_inside_quadrangle(point, quadr4):
                     aa = ee
                     dd = ff
 
-            ac = cc - aa
-            bd = dd - bb
+                ac = cc - aa
+                bd = dd - bb
 
+            elif ac == 1:
+
+                ff = (bb+dd) // 2
+
+                p111 = Point(mesh.lat2d[aa,bb], mesh.lon2d[aa,bb])
+                p112 = Point(mesh.lat2d[aa,ff], mesh.lon2d[aa,ff])
+                p121 = Point(mesh.lat2d[cc,bb], mesh.lon2d[cc,bb])
+                p122 = Point(mesh.lat2d[cc,ff], mesh.lon2d[cc,ff])
+
+                quadr1 = Quadrangle(p111, p112, p122, p121)
+
+                p211 = Point(mesh.lat2d[aa,ff], mesh.lon2d[aa,ff])
+                p212 = Point(mesh.lat2d[aa,dd], mesh.lon2d[aa,dd])
+                p221 = Point(mesh.lat2d[cc,ff], mesh.lon2d[cc,ff])
+                p222 = Point(mesh.lat2d[cc,dd], mesh.lon2d[cc,dd])
+
+                quadr2 = Quadrangle(p211, p212, p222, p221)
+
+                if Check.is_inside_quadrangle(point, quadr1):
+                    dd = ff
+
+                elif Check.is_inside_quadrangle(point, quadr2):
+                    bb = ff
+
+                ac = cc - aa
+                bd = dd - bb
+
+            elif bd == 1:
+
+                ee = (aa+cc) // 2
+
+                p111 = Point(mesh.lat2d[aa,bb], mesh.lon2d[aa,bb])
+                p112 = Point(mesh.lat2d[aa,dd], mesh.lon2d[aa,dd])
+                p121 = Point(mesh.lat2d[ee,bb], mesh.lon2d[ee,bb])
+                p122 = Point(mesh.lat2d[ee,dd], mesh.lon2d[ee,dd])
+
+                quadr1 = Quadrangle(p111, p112, p122, p121)
+
+                p211 = Point(mesh.lat2d[ee,bb], mesh.lon2d[ee,bb])
+                p212 = Point(mesh.lat2d[ee,dd], mesh.lon2d[ee,dd])
+                p221 = Point(mesh.lat2d[cc,bb], mesh.lon2d[cc,bb])
+                p222 = Point(mesh.lat2d[cc,dd], mesh.lon2d[cc,dd])
+
+                quadr2 = Quadrangle(p211, p212, p222, p221)
+
+                if Check.is_inside_quadrangle(point, quadr1):
+                    cc = ee
+
+                elif Check.is_inside_quadrangle(point, quadr2):
+                    aa = ee
+
+                ac = cc - aa
+                bd = dd - bb
+
+        #print(aa, bb, cc, dd)
         p11 = Point(mesh.lat2d[aa,bb], mesh.lon2d[aa,bb])
         p12 = Point(mesh.lat2d[aa,dd], mesh.lon2d[aa,dd])
         p21 = Point(mesh.lat2d[cc,bb], mesh.lon2d[cc,bb])
