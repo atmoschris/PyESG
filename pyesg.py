@@ -33,14 +33,6 @@ class Point(object):
         self.lat = math.radians(lat)
         self.lon = math.radians(lon)
 
-    #def deg(self):
-        #''' radians -> degree
-        #'''
-        #lat_deg = math.degrees(self.lat)
-        #lon_deg = math.degrees(self.lon)
-
-        #return lat_deg, lon_deg
-
     def __str__(self):
         ''' radians -> degree
         '''
@@ -199,6 +191,9 @@ class Triangle(object):
         arc2 = Arc(self.p3, self.p1)
         arc3 = Arc(self.p1, self.p2)
 
+        if Check.is_same_great_circle(arc1, arc2) or Check.is_same_great_circle(arc1, arc3) or Check.is_same_great_circle(arc2, arc3):
+            raise ValueError('The three given points are on the same arc!')
+
         a = arc1.rad()
         b = arc2.rad()
         c = arc3.rad()
@@ -343,13 +338,10 @@ class Check():
         else:
             return False
 
-    def is_on_great_circle(point, arc):
+    def is_same_great_circle(arc1, arc2):
         '''
-        Check if a given point is on the great_circle defined by the given arc.
+        Check if two given arcs are on the same great_circle.
         '''
-        arc1 = Arc(point, arc.p1)
-        arc2 = Arc(point, arc.p2)
-
         vec11 = arc1.p1.vector()
         vec12 = arc1.p2.vector()
         vec21 = arc2.p1.vector()
@@ -363,7 +355,18 @@ class Check():
 
         if mag_t == 0:
             return True
+        else:
+            return False
 
+    def is_on_great_circle(point, arc):
+        '''
+        Check if a given point is on the great_circle defined by the given arc.
+        '''
+        arc1 = Arc(point, arc.p1)
+        arc2 = Arc(point, arc.p2)
+
+        if Check.is_same_great_circle(arc1, arc2):
+            return True
         else:
             return False
 
@@ -674,3 +677,56 @@ class Search():
             return tri1
         elif Check.is_inside_triangle(point, tri1):
             return tri2
+
+class Interp():
+    '''
+    Interpolation algorithms.
+    '''
+    def barycentric(point, triangle):
+        ''' (point, triangle) -> weight1, weight2, weight3
+
+        Barycentric Interpolation: interpolation in a triangle.
+
+        [reference: https://classes.soe.ucsc.edu/cmps160/Fall10/resources/barycentricInterpolation.pdf]
+        '''
+        if Check.is_inside_triangle(point, triangle) == False:
+            raise ValueError('The given point is not in the given triangle!')
+
+        tri1 = Triangle(point, triangle.p2, triangle.p3)
+        tri2 = Triangle(point, triangle.p1, triangle.p3)
+        tri3 = Triangle(point, triangle.p1, triangle.p2)
+
+        A1 = tri1.area()
+        A2 = tri2.area()
+        A3 = tri3.area()
+
+        A_tri = triangle.area()
+        A = A1 + A2 + A3
+
+        if Check.is_close_enough(A, A_tri) == False:
+            raise ValueError('The triangle is too big for barycentric interpolation!')
+
+        weight1 = A1 / A
+        weight2 = A2 / A
+        weight3 = A3 / A
+
+        return weight1, weight2, weight3
+
+    def regrid(mesh_old, mesh_new):
+        ''' (mesh_old, mesh_new)
+
+        Calculate the remapping coefficients (weights) from an old mesh to a new mesh.
+        '''
+
+        nlat = mesh_new.lat2d.shape[0]
+        nlon = mesh_new.lat2d.shape[1]
+        #print(nlat, nlon)
+        weights = np.ndarray(shape=(3,nlat,nlon))
+        tris = np.ndarray(shape=(nlat,nlon))
+
+        for i in np.arange(nlat):
+            for j in np.arange(nlon):
+                p = Point(mesh_new.lat2d[i,j], mesh_new.lon2d[i,j])
+                tri = Search.triangle(p, mesh_old)
+                weights[:,i,j] = Interp.barycentric(p, tri)
+                #tris[i,j] = tri

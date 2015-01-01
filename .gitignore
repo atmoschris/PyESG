@@ -4,3 +4,9 @@ __pycache__
 build/lib/pyesg.py
 
 *.dat
+
+*.egg
+
+pyesg.egg-info/PKG-INFO
+
+*.txt
