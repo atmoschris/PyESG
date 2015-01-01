@@ -11,6 +11,8 @@ with a version of Anaconda 2.0.1 (Python 3.4).
 Some third-party modules are required:
 
 + numpy
++ colors
++ progressbar2
 
 ## Architecture
 

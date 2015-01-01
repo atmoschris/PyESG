@@ -7,6 +7,9 @@
 import math
 import numpy as np
 
+import progressbar
+import colors
+
 #========================================================================================
 # Constants
 #----------------------------------------------------------------------------------------
@@ -25,10 +28,10 @@ class Point(object):
     '''
     def __init__(self, lat, lon):
         if lat > 90 or lat < -90:
-            raise ValueError('The range of latitude should be [-90, 90]')
+            raise ValueError('The range of latitude should be [-90, 90]!')
 
         if lon > 180 or lon < -180:
-            raise ValueError('The range of longitude should be [-180, 180]')
+            raise ValueError('The range of longitude should be [-180, 180]!')
 
         self.lat = math.radians(lat)
         self.lon = math.radians(lon)
@@ -167,16 +170,24 @@ class Arc(object):
 
         return wp
 
-
 class Triangle(object):
     '''
     An triangle on the earth defined by three points p1, p2, and p3.
     It also can be seen as the relationship between three points.
     '''
     def __init__(self, p1, p2, p3):
+
         self.p1 = p1
         self.p2 = p2
         self.p3 = p3
+
+        arc1 = Arc(self.p2, self.p3)
+        arc2 = Arc(self.p3, self.p1)
+        arc3 = Arc(self.p1, self.p2)
+
+        if Check.is_same_great_circle(arc1, arc2) or Check.is_same_great_circle(arc1, arc3) or Check.is_same_great_circle(arc2, arc3):
+            print(self.p1, self.p2, self.p3)
+            raise ValueError('The three given points are on the same arc!')
 
     def __str__(self):
         return str(self.p1) + ' <-> ' + str(self.p2) + ' <-> ' + str(self.p3)
@@ -190,9 +201,6 @@ class Triangle(object):
         arc1 = Arc(self.p2, self.p3)
         arc2 = Arc(self.p3, self.p1)
         arc3 = Arc(self.p1, self.p2)
-
-        if Check.is_same_great_circle(arc1, arc2) or Check.is_same_great_circle(arc1, arc3) or Check.is_same_great_circle(arc2, arc3):
-            raise ValueError('The three given points are on the same arc!')
 
         a = arc1.rad()
         b = arc2.rad()
@@ -244,7 +252,7 @@ class Quadrangle(object):
     Note: p1 -> p2 -> p3 -> p4 should be rotative.
     '''
     def __init__(self, p1, p2, p3, p4):
-        if Check.is_rotative(p1, p2, p3, p4) == False:
+        if not Check.is_rotative(p1, p2, p3, p4):
             raise ValueError('The given four points are in wrong sequence!')
 
         self.p1 = p1
@@ -314,11 +322,21 @@ class Check():
         if p1 == None or p2 == None:
             return False
 
-        elif p1.lat == p2.lat and p1.lon == p2.lon:
+        elif Check.is_close_enough(p1.lat, p2.lat) and Check.is_close_enough(p1.lon, p2.lon):
             return True
 
         else:
             return False
+
+    def is_one_of_points(point, points):
+        '''
+        Check if a given point is one of the given points.
+        '''
+        for p in points:
+            if Check.is_equal(point, p):
+                return True
+
+        return False
 
     def is_rotative(p1, p2, p3, p4):
         '''
@@ -374,7 +392,7 @@ class Check():
         '''
         Check if a given point is on the given arc.
         '''
-        if Check.is_on_great_circle == False:
+        if not Check.is_on_great_circle:
             return False
 
         arc1 = Arc(point, arc.p1)
@@ -460,9 +478,9 @@ class Check():
             is_intersected = False
             return is_intersected, None
 
-    def is_inside_triangle(point, triangle):
+    def is_on_triangle(point, triangle):
         '''
-        Check if a given point (lat, lon) is inside the given triangle.
+        Check if a given point (lat, lon) is on one of the sides of the given triangle.
         '''
         arc1 = Arc(triangle.p2, triangle.p3)
         arc2 = Arc(triangle.p3, triangle.p1)
@@ -473,6 +491,19 @@ class Check():
         elif Check.is_waypoint(point, arc2, method='inner'):
             return True
         elif Check.is_waypoint(point, arc3, method='inner'):
+            return True
+        else:
+            return False
+
+    def is_inside_triangle(point, triangle):
+        '''
+        Check if a given point (lat, lon) is inside (including on) the given triangle.
+        '''
+        arc1 = Arc(triangle.p2, triangle.p3)
+        arc2 = Arc(triangle.p3, triangle.p1)
+        arc3 = Arc(triangle.p1, triangle.p2)
+
+        if Check.is_on_triangle(point, triangle):
             return True
 
         if Check.is_waypoint(point, arc1, method='outer'):
@@ -492,23 +523,30 @@ class Check():
         check3, inter_p3 = Check.is_intersected(arc, arc3)
 
         if check1 == True:
+            #print('Intersected with arc1.')
             num_intersected_points += 1
 
         if check2 == True:
+            #print('Intersected with arc2.')
             num_intersected_points += 1
 
         if check3 == True:
+            #print('Intersected with arc3.')
             num_intersected_points += 1
 
         if Check.is_equal(inter_p1, inter_p2):
+            #print('Same intersected point with arc1 and arc2.')
             num_intersected_points -= 1
 
         if Check.is_equal(inter_p1, inter_p3):
+            #print('Same intersected point with arc1 and arc3.')
             num_intersected_points -= 1
 
         if Check.is_equal(inter_p2, inter_p3):
+            #print('Same intersected point with arc2 and arc3.')
             num_intersected_points -= 1
 
+        #print(num_intersected_points)
         if num_intersected_points % 2 == 0:
             return False # outside
         else:
@@ -535,6 +573,15 @@ class Search():
         nlat = mesh.lat2d.shape[0]
         nlon = mesh.lat2d.shape[1]
 
+        grids = []
+
+        for i in np.arange(nlat_old):
+            for j in np.arange(nlon_old):
+                grids.append(Point(mesh_old.lat2d[i,j], mesh_old.lon2d[i,j]))
+
+        if Check.is_one_of_points(point, grids):
+            raise ValueError('The given point is one of the mesh grids!')
+
         p11_max = Point(mesh.lat2d[0,0], mesh.lon2d[0,0])
         p12_max = Point(mesh.lat2d[0,nlon-1], mesh.lon2d[0,nlon-1])
         p21_max = Point(mesh.lat2d[nlat-1,0], mesh.lon2d[nlat-1,0])
@@ -542,7 +589,7 @@ class Search():
 
         quadr_max = Quadrangle(p11_max, p12_max, p22_max, p21_max)
 
-        if Check.is_inside_quadrangle(point, quadr_max) == False:
+        if not Check.is_inside_quadrangle(point, quadr_max):
             raise ValueError('The given point is not inside the mesh!')
 
         aa, bb = 0, 0 # left lower corner
@@ -689,21 +736,54 @@ class Interp():
 
         [reference: https://classes.soe.ucsc.edu/cmps160/Fall10/resources/barycentricInterpolation.pdf]
         '''
-        if Check.is_inside_triangle(point, triangle) == False:
+        if not Check.is_inside_triangle(point, triangle):
             raise ValueError('The given point is not in the given triangle!')
 
-        tri1 = Triangle(point, triangle.p2, triangle.p3)
-        tri2 = Triangle(point, triangle.p1, triangle.p3)
-        tri3 = Triangle(point, triangle.p1, triangle.p2)
+        arc1 = Arc(triangle.p2, triangle.p3)
+        arc2 = Arc(triangle.p1, triangle.p3)
+        arc3 = Arc(triangle.p1, triangle.p2)
 
-        A1 = tri1.area()
-        A2 = tri2.area()
-        A3 = tri3.area()
+        if Check.is_waypoint(point, arc1):
 
-        A_tri = triangle.area()
+            tri2 = Triangle(point, triangle.p1, triangle.p3)
+            tri3 = Triangle(point, triangle.p1, triangle.p2)
+
+            A1 = 0
+            A2 = tri2.area()
+            A3 = tri3.area()
+
+        if Check.is_waypoint(point, arc2):
+
+            tri1 = Triangle(point, triangle.p2, triangle.p3)
+            tri3 = Triangle(point, triangle.p1, triangle.p2)
+
+            A1 = tri1.area()
+            A2 = 0
+            A3 = tri3.area()
+
+        if Check.is_waypoint(point, arc3):
+
+            tri1 = Triangle(point, triangle.p2, triangle.p3)
+            tri2 = Triangle(point, triangle.p1, triangle.p3)
+
+            A1 = tri1.area()
+            A2 = tri2.area()
+            A3 = 0
+
+        else:
+
+            tri1 = Triangle(point, triangle.p2, triangle.p3)
+            tri2 = Triangle(point, triangle.p1, triangle.p3)
+            tri3 = Triangle(point, triangle.p1, triangle.p2)
+
+            A1 = tri1.area()
+            A2 = tri2.area()
+            A3 = tri3.area()
+
         A = A1 + A2 + A3
+        A_tri = triangle.area()
 
-        if Check.is_close_enough(A, A_tri) == False:
+        if not Check.is_close_enough(A, A_tri):
             raise ValueError('The triangle is too big for barycentric interpolation!')
 
         weight1 = A1 / A
@@ -717,16 +797,39 @@ class Interp():
 
         Calculate the remapping coefficients (weights) from an old mesh to a new mesh.
         '''
+        nlat_old = mesh_old.lat2d.shape[0]
+        nlon_old = mesh_old.lat2d.shape[1]
 
-        nlat = mesh_new.lat2d.shape[0]
-        nlon = mesh_new.lat2d.shape[1]
-        #print(nlat, nlon)
-        weights = np.ndarray(shape=(3,nlat,nlon))
-        tris = np.ndarray(shape=(nlat,nlon))
+        grids = []
 
-        for i in np.arange(nlat):
-            for j in np.arange(nlon):
-                p = Point(mesh_new.lat2d[i,j], mesh_new.lon2d[i,j])
-                tri = Search.triangle(p, mesh_old)
-                weights[:,i,j] = Interp.barycentric(p, tri)
-                #tris[i,j] = tri
+        for i in np.arange(nlat_old):
+            for j in np.arange(nlon_old):
+                grids.append(Point(mesh_old.lat2d[i,j], mesh_old.lon2d[i,j]))
+
+        nlat_new = mesh_new.lat2d.shape[0]
+        nlon_new = mesh_new.lat2d.shape[1]
+
+        weights = np.ndarray(shape=(3,nlat_new,nlon_new))
+
+        tris = np.ndarray(shape=(nlat_new,nlon_new))
+
+        print(colors.green('Runing regrid...'))
+
+        pbar = progressbar.ProgressBar()
+
+        for i in pbar(np.arange(nlat_new)):
+        #for i in np.arange(nlat_new):
+            for j in np.arange(nlon_new):
+
+                p_new = Point(mesh_new.lat2d[i,j], mesh_new.lon2d[i,j])
+                p_old = Point(mesh_old.lat2d[i,j], mesh_old.lon2d[i,j])
+
+                #if Check.is_equal(p_new, p_old):
+                if Check.is_one_of_points(p_new, grids):
+                    #print(colors.green('p_new is in the old mesh!'))
+                    continue
+                else:
+                    tri = Search.triangle(p_new, mesh_old)
+                    #quadr = Search.quadrangle(p_new, mesh_old)
+                    #weights[:,i,j] = Interp.barycentric(p, tri)
+                    #tris[i,j] = tri
