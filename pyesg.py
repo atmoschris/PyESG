@@ -549,7 +549,11 @@ class Search():
 
         while ac > 1 or bd > 1:
 
+<<<<<<< HEAD
             #print(aa, bb, cc, dd)
+=======
+            print(aa, bb, cc, dd)
+>>>>>>> FETCH_HEAD
 
             if ac != 1 and bd != 1:
 
@@ -656,7 +660,11 @@ class Search():
                 ac = cc - aa
                 bd = dd - bb
 
+<<<<<<< HEAD
         #print(aa, bb, cc, dd)
+=======
+        print(aa, bb, cc, dd)
+>>>>>>> FETCH_HEAD
         p11 = Point(mesh.lat2d[aa,bb], mesh.lon2d[aa,bb])
         p12 = Point(mesh.lat2d[aa,dd], mesh.lon2d[aa,dd])
         p21 = Point(mesh.lat2d[cc,bb], mesh.lon2d[cc,bb])
