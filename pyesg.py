@@ -5,6 +5,7 @@
 # Date: 2014-12-30 18:19:41
 #========================================================================================
 import math
+
 import numpy as np
 
 import progressbar
@@ -13,7 +14,7 @@ import colors
 #========================================================================================
 # Constants
 #----------------------------------------------------------------------------------------
-class Earth():
+class Earth:
     radius = 6371 # km
     diameter = 2 * math.pi * radius # km
 
@@ -37,12 +38,24 @@ class Point(object):
         self.lon = math.radians(lon)
 
     def __str__(self):
-        ''' radians -> degree
-        '''
         lat_deg = math.degrees(self.lat)
         lon_deg = math.degrees(self.lon)
 
         return '(' + str(lat_deg) + ', ' + str(lon_deg) + ')'
+
+    def lat_deg(self):
+        ''' radians -> degree
+        '''
+        lat_deg = math.degrees(self.lat)
+
+        return lat_deg
+
+    def lon_deg(self):
+        ''' radians -> degree
+        '''
+        lon_deg = math.degrees(self.lon)
+
+        return lon_deg
 
     def spherical_coord(self):
         ''' p (lat, lon) -> x, y, z
@@ -303,9 +316,9 @@ class Mesh(object):
     def __str__(self):
         return str(self.lat2d.shape) + ' x ' + str(self.lon2d.shape)
 
-class Check():
+class Check:
 
-    def is_close_enough(v1, v2, e=0.0000001):
+    def is_close_enough(v1, v2, e=1e-8):
         '''
         Check if two values are close enough.
         '''
@@ -328,15 +341,25 @@ class Check():
         else:
             return False
 
-    def is_one_of_points(point, points):
+    def is_one_of_grids(point, mesh):
         '''
-        Check if a given point is one of the given points.
+        Check if a given point is one of the mesh grids.
         '''
-        for p in points:
-            if Check.is_equal(point, p):
-                return True
+        nlat = mesh.lat2d.shape[0]
+        nlon = mesh.lat2d.shape[1]
 
-        return False
+        grids = []
+
+        for i in np.arange(nlat):
+            for j in np.arange(nlon):
+                pm = Point(mesh.lat2d[i,j], mesh.lon2d[i,j])
+                grids.append((pm.lat, pm.lon))
+
+        #if (point.lat_deg(), point.lon_deg()) in grids:
+        if (point.lat, point.lon) in grids:
+            return True
+        else:
+            return False
 
     def is_rotative(p1, p2, p3, p4):
         '''
@@ -559,28 +582,27 @@ class Check():
         '''
         tri1 = Triangle(quadrangle.p1, quadrangle.p2, quadrangle.p4)
         tri2 = Triangle(quadrangle.p2, quadrangle.p3, quadrangle.p4)
+        #tri3 = Triangle(quadrangle.p1, quadrangle.p3, quadrangle.p4)
+        #tri4 = Triangle(quadrangle.p1, quadrangle.p2, quadrangle.p3)
 
         if Check.is_inside_triangle(point, tri1) or Check.is_inside_triangle(point, tri2):
+        #if Check.is_inside_triangle(point, tri1) or Check.is_inside_triangle(point, tri2) or Check.is_inside_triangle(point, tri3) or Check.is_inside_triangle(point, tri4):
             return True
         else:
             return False
 
-class Search():
+class Search:
     def quadrangle(point, mesh):
         '''
         Search the quadrangle which the point located in.
         '''
+        #cdef int i, j
+
         nlat = mesh.lat2d.shape[0]
         nlon = mesh.lat2d.shape[1]
 
-        grids = []
-
-        for i in np.arange(nlat):
-            for j in np.arange(nlon):
-                grids.append(Point(mesh.lat2d[i,j], mesh.lon2d[i,j]))
-
-        #if Check.is_one_of_points(point, grids):
-            #raise ValueError('The given point is one of the mesh grids!')
+        if Check.is_one_of_grids(point, mesh):
+            raise ValueError('The given point is one of the mesh grids!')
 
         p11_max = Point(mesh.lat2d[0,0], mesh.lon2d[0,0])
         p12_max = Point(mesh.lat2d[0,nlon-1], mesh.lon2d[0,nlon-1])
@@ -598,7 +620,8 @@ class Search():
         bd = dd - bb
 
         while ac > 1 or bd > 1:
-            #print(aa, bb, cc, dd)
+            last_ac = ac
+            last_bd = bd
 
             if ac != 1 and bd != 1:
 
@@ -610,6 +633,8 @@ class Search():
                 p122 = Point(mesh.lat2d[ee,ff], mesh.lon2d[ee,ff])
 
                 quadr1 = Quadrangle(p111, p112, p122, p121)
+                #print('quadr1:',quadr1)
+                #print(Check.is_inside_quadrangle(point, quadr1))
 
                 p211 = Point(mesh.lat2d[aa,ff], mesh.lon2d[aa,ff])
                 p212 = Point(mesh.lat2d[aa,dd], mesh.lon2d[aa,dd])
@@ -617,6 +642,8 @@ class Search():
                 p222 = Point(mesh.lat2d[ee,dd], mesh.lon2d[ee,dd])
 
                 quadr2 = Quadrangle(p211, p212, p222, p221)
+                #print('quadr2:',quadr2)
+                #print(Check.is_inside_quadrangle(point, quadr2))
 
                 p311 = Point(mesh.lat2d[ee,ff], mesh.lon2d[ee,ff])
                 p312 = Point(mesh.lat2d[ee,dd], mesh.lon2d[ee,dd])
@@ -624,6 +651,8 @@ class Search():
                 p322 = Point(mesh.lat2d[cc,dd], mesh.lon2d[cc,dd])
 
                 quadr3 = Quadrangle(p311, p312, p322, p321)
+                #print('quadr3:',quadr3)
+                #print(Check.is_inside_quadrangle(point, quadr3))
 
                 p411 = Point(mesh.lat2d[ee,bb], mesh.lon2d[ee,bb])
                 p412 = Point(mesh.lat2d[ee,ff], mesh.lon2d[ee,ff])
@@ -631,25 +660,28 @@ class Search():
                 p422 = Point(mesh.lat2d[cc,ff], mesh.lon2d[cc,ff])
 
                 quadr4 = Quadrangle(p411, p412, p422, p421)
+                #print('quadr4:', quadr4)
+                #print(Check.is_inside_quadrangle(point, quadr4))
 
                 if Check.is_inside_quadrangle(point, quadr1):
+                    #print('Point is inside quadr1:', quadr1)
                     cc = ee
                     dd = ff
 
                 elif Check.is_inside_quadrangle(point, quadr2):
+                    #print('Point is inside quadr2:', quadr2)
                     cc = ee
                     bb = ff
 
                 elif Check.is_inside_quadrangle(point, quadr3):
+                    #print('Point is inside quadr3:', quadr3)
                     aa = ee
                     bb = ff
 
                 elif Check.is_inside_quadrangle(point, quadr4):
+                    #print('Point is inside quadr4:', quadr4)
                     aa = ee
                     dd = ff
-
-                ac = cc - aa
-                bd = dd - bb
 
             elif ac == 1:
 
@@ -675,9 +707,6 @@ class Search():
                 elif Check.is_inside_quadrangle(point, quadr2):
                     bb = ff
 
-                ac = cc - aa
-                bd = dd - bb
-
             elif bd == 1:
 
                 ee = (aa+cc) // 2
@@ -702,8 +731,49 @@ class Search():
                 elif Check.is_inside_quadrangle(point, quadr2):
                     aa = ee
 
-                ac = cc - aa
-                bd = dd - bb
+            ac = cc - aa
+            bd = dd - bb
+
+            if last_ac == ac and last_bd == bd:
+                print(colors.red('Need to search around...'))
+
+                for j in np.arange(bb, dd):
+                    p11 = Point(mesh.lat2d[aa-1,j], mesh.lon2d[aa-1,j])
+                    p12 = Point(mesh.lat2d[aa-1,j+1], mesh.lon2d[aa-1,j+1])
+                    p21 = Point(mesh.lat2d[aa,j], mesh.lon2d[aa,j])
+                    p22 = Point(mesh.lat2d[aa,j+1], mesh.lon2d[aa,j+1])
+
+                    quadr2check = Quadrangle(p11, p12, p22, p21)
+                    if Check.is_inside_quadrangle(point, quadr2check):
+                        return Quadrangle(p11, p12, p22, p21)
+
+                    p11 = Point(mesh.lat2d[cc,j], mesh.lon2d[cc,j])
+                    p12 = Point(mesh.lat2d[cc,j+1], mesh.lon2d[cc,j+1])
+                    p21 = Point(mesh.lat2d[cc+1,j], mesh.lon2d[cc+1,j])
+                    p22 = Point(mesh.lat2d[cc+1,j+1], mesh.lon2d[cc+1,j+1])
+
+                    quadr2check = Quadrangle(p11, p12, p22, p21)
+                    if Check.is_inside_quadrangle(point, quadr2check):
+                        return Quadrangle(p11, p12, p22, p21)
+
+                for i in np.arange(aa, cc):
+                    p11 = Point(mesh.lat2d[i,bb-1], mesh.lon2d[i,bb-1])
+                    p12 = Point(mesh.lat2d[i,bb], mesh.lon2d[i,bb])
+                    p21 = Point(mesh.lat2d[i+1,bb-1], mesh.lon2d[i+1,bb-1])
+                    p22 = Point(mesh.lat2d[i+1,bb], mesh.lon2d[i+1,bb])
+
+                    quadr2check = Quadrangle(p11, p12, p22, p21)
+                    if Check.is_inside_quadrangle(point, quadr2check):
+                        return Quadrangle(p11, p12, p22, p21)
+
+                    p11 = Point(mesh.lat2d[i,dd], mesh.lon2d[i,dd])
+                    p12 = Point(mesh.lat2d[i,dd+1], mesh.lon2d[i,dd+1])
+                    p21 = Point(mesh.lat2d[i+1,dd], mesh.lon2d[i+1,dd])
+                    p22 = Point(mesh.lat2d[i+1,dd+1], mesh.lon2d[i+1,dd+1])
+
+                    quadr2check = Quadrangle(p11, p12, p22, p21)
+                    if Check.is_inside_quadrangle(point, quadr2check):
+                        return Quadrangle(p11, p12, p22, p21)
 
         #print(aa, bb, cc, dd)
         p11 = Point(mesh.lat2d[aa,bb], mesh.lon2d[aa,bb])
@@ -727,7 +797,7 @@ class Search():
         elif Check.is_inside_triangle(point, tri1):
             return tri2
 
-class Interp():
+class Interp:
     '''
     Interpolation algorithms.
     '''
@@ -799,14 +869,11 @@ class Interp():
 
         Calculate the remapping coefficients (weights) from an old mesh to a new mesh.
         '''
+        #cdef int i, j
+
         nlat_old = mesh_old.lat2d.shape[0]
         nlon_old = mesh_old.lat2d.shape[1]
 
-        grids = []
-
-        for i in np.arange(nlat_old):
-            for j in np.arange(nlon_old):
-                grids.append(Point(mesh_old.lat2d[i,j], mesh_old.lon2d[i,j]))
 
         nlat_new = mesh_new.lat2d.shape[0]
         nlon_new = mesh_new.lat2d.shape[1]
@@ -817,21 +884,24 @@ class Interp():
 
         print(colors.green('Runing regrid...'))
 
-        pbar = progressbar.ProgressBar()
-
-        for i in pbar(np.arange(nlat_new)):
-        #for i in np.arange(nlat_new):
-            for j in np.arange(nlon_new):
-
+        #pbar = progressbar.ProgressBar()
+        #for i in pbar(np.arange(nlat_new)):
+        for i in np.arange(nlat_new):
+            print(colors.green('Processing the (' + str(i+1) + ' of ' + str(nlat_new) + ') row... ' + '{:3.0f}'.format((i+1)/nlat_new*100) + '%'))
+            pbar = progressbar.ProgressBar()
+            for j in pbar(np.arange(nlon_new)):
+            #for j in np.arange(nlon_new):
                 p_new = Point(mesh_new.lat2d[i,j], mesh_new.lon2d[i,j])
                 p_old = Point(mesh_old.lat2d[i,j], mesh_old.lon2d[i,j])
 
                 #if Check.is_equal(p_new, p_old):
-                if Check.is_one_of_points(p_new, grids):
-                    #print(colors.green('p_new is in the old mesh!'))
+                if Check.is_one_of_grids(p_new, mesh_old):
+                #if (mesh_new.lat2d[i,j], mesh_new.lon2d[i,j]) in grids:
+                    #print(colors.green('p_new is in the old mesh!'), i,j)
                     continue
                 else:
                     tri = Search.triangle(p_new, mesh_old)
+
                     #quadr = Search.quadrangle(p_new, mesh_old)
                     #weights[:,i,j] = Interp.barycentric(p, tri)
                     #tris[i,j] = tri

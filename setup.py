@@ -1,10 +1,9 @@
-#from distutils.core import setup
 from setuptools import setup
 
 setup(
     name = 'pyesg',
     py_modules = ['pyesg'],
-    version = '0.0.1',
+    version = '0.0.12',
     description = 'Python library of Earth Spherical Geometry (PyESG)',
     author='Feng Zhu',
     author_email='feng.zhu@ssec.wisc.edu',
