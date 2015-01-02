@@ -305,7 +305,7 @@ class Mesh(object):
 
 class Check():
 
-    def is_close_enough(v1, v2, e=0.0001):
+    def is_close_enough(v1, v2, e=0.0000001):
         '''
         Check if two values are close enough.
         '''
@@ -458,6 +458,8 @@ class Check():
         else:
             intersected_p = intersected_p2
 
+        #print(intersected_p)
+
         arc_p_11 = Arc(intersected_p, arc1.p1)
         arc_p_12 = Arc(intersected_p, arc1.p2)
         arc_p_21 = Arc(intersected_p, arc2.p1)
@@ -472,11 +474,9 @@ class Check():
         d2 = arc2.distance()
 
         if Check.is_close_enough(d_p_11+d_p_12, d1) and Check.is_close_enough(d_p_21+d_p_22, d2):
-            is_intersected = True
-            return is_intersected, intersected_p
+            return True, intersected_p
         else:
-            is_intersected = False
-            return is_intersected, None
+            return False, None
 
     def is_on_triangle(point, triangle):
         '''
@@ -523,15 +523,15 @@ class Check():
         check3, inter_p3 = Check.is_intersected(arc, arc3)
 
         if check1 == True:
-            #print('Intersected with arc1.')
+            #print('Intersected with arc1:', arc1, 'at', inter_p1)
             num_intersected_points += 1
 
         if check2 == True:
-            #print('Intersected with arc2.')
+            #print('Intersected with arc2:', arc2, 'at', inter_p2)
             num_intersected_points += 1
 
         if check3 == True:
-            #print('Intersected with arc3.')
+            #print('Intersected with arc3:', arc3, 'at', inter_p3)
             num_intersected_points += 1
 
         if Check.is_equal(inter_p1, inter_p2):
@@ -575,12 +575,12 @@ class Search():
 
         grids = []
 
-        for i in np.arange(nlat_old):
-            for j in np.arange(nlon_old):
-                grids.append(Point(mesh_old.lat2d[i,j], mesh_old.lon2d[i,j]))
+        for i in np.arange(nlat):
+            for j in np.arange(nlon):
+                grids.append(Point(mesh.lat2d[i,j], mesh.lon2d[i,j]))
 
-        if Check.is_one_of_points(point, grids):
-            raise ValueError('The given point is one of the mesh grids!')
+        #if Check.is_one_of_points(point, grids):
+            #raise ValueError('The given point is one of the mesh grids!')
 
         p11_max = Point(mesh.lat2d[0,0], mesh.lon2d[0,0])
         p12_max = Point(mesh.lat2d[0,nlon-1], mesh.lon2d[0,nlon-1])
@@ -598,6 +598,7 @@ class Search():
         bd = dd - bb
 
         while ac > 1 or bd > 1:
+            #print(aa, bb, cc, dd)
 
             if ac != 1 and bd != 1:
 
@@ -704,6 +705,7 @@ class Search():
                 ac = cc - aa
                 bd = dd - bb
 
+        #print(aa, bb, cc, dd)
         p11 = Point(mesh.lat2d[aa,bb], mesh.lon2d[aa,bb])
         p12 = Point(mesh.lat2d[aa,dd], mesh.lon2d[aa,dd])
         p21 = Point(mesh.lat2d[cc,bb], mesh.lon2d[cc,bb])
