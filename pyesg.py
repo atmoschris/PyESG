@@ -18,6 +18,8 @@ class Earth:
     radius = 6371 # km
     diameter = 2 * math.pi * radius # km
 
+undef = -99999.
+
 #========================================================================================
 
 #========================================================================================
@@ -745,7 +747,7 @@ class Search:
 
                     quadr2check = Quadrangle(p11, p12, p22, p21)
                     if Check.is_inside_quadrangle(point, quadr2check):
-                        return Quadrangle(p11, p12, p22, p21)
+                        return quadr2check, aa-1, j, aa, j+1
 
                     p11 = Point(mesh.lat2d[cc,j], mesh.lon2d[cc,j])
                     p12 = Point(mesh.lat2d[cc,j+1], mesh.lon2d[cc,j+1])
@@ -754,7 +756,7 @@ class Search:
 
                     quadr2check = Quadrangle(p11, p12, p22, p21)
                     if Check.is_inside_quadrangle(point, quadr2check):
-                        return Quadrangle(p11, p12, p22, p21)
+                        return quadr2check, cc, j, cc+1, j+1
 
                 for i in np.arange(aa, cc):
                     p11 = Point(mesh.lat2d[i,bb-1], mesh.lon2d[i,bb-1])
@@ -764,7 +766,7 @@ class Search:
 
                     quadr2check = Quadrangle(p11, p12, p22, p21)
                     if Check.is_inside_quadrangle(point, quadr2check):
-                        return Quadrangle(p11, p12, p22, p21)
+                        return quadr2check, i, bb-1, i+1, bb
 
                     p11 = Point(mesh.lat2d[i,dd], mesh.lon2d[i,dd])
                     p12 = Point(mesh.lat2d[i,dd+1], mesh.lon2d[i,dd+1])
@@ -773,7 +775,7 @@ class Search:
 
                     quadr2check = Quadrangle(p11, p12, p22, p21)
                     if Check.is_inside_quadrangle(point, quadr2check):
-                        return Quadrangle(p11, p12, p22, p21)
+                        return quadr2check, i, dd, i+1, dd+1
 
         #print(aa, bb, cc, dd)
         p11 = Point(mesh.lat2d[aa,bb], mesh.lon2d[aa,bb])
@@ -781,21 +783,32 @@ class Search:
         p21 = Point(mesh.lat2d[cc,bb], mesh.lon2d[cc,bb])
         p22 = Point(mesh.lat2d[cc,dd], mesh.lon2d[cc,dd])
 
-        return Quadrangle(p11, p12, p22, p21)
+        quadr = Quadrangle(p11, p12, p22, p21)
+        #print(quadr)
+
+        return quadr, aa, bb, cc, dd
+        #return aa, bb, cc, dd, quadr
 
     def triangle(point, mesh):
         '''
         Search the triangle which the point located in.
         '''
-        quadr = Search.quadrangle(point, mesh)
+        quadr, aa, bb, cc, dd = Search.quadrangle(point, mesh)
+        #aa, bb, cc, dd, quadr = Search.quadrangle(point, mesh)
+        #print(aa, bb, cc, dd)
 
         tri1 = Triangle(quadr.p1, quadr.p2, quadr.p4)
         tri2 = Triangle(quadr.p2, quadr.p3, quadr.p4)
+        #print(point)
+        #print(tri1)
+        #print(tri2)
 
         if Check.is_inside_triangle(point, tri1):
-            return tri1
-        elif Check.is_inside_triangle(point, tri1):
-            return tri2
+            return tri1, (aa, bb), (aa, dd), (cc, bb)
+        elif Check.is_inside_triangle(point, tri2):
+            return tri2, (aa, dd), (cc, dd), (cc, bb)
+        else:
+            raise ValueError('Something wrong!')
 
 class Interp:
     '''
@@ -855,8 +868,8 @@ class Interp:
         A = A1 + A2 + A3
         A_tri = triangle.area()
 
-        if not Check.is_close_enough(A, A_tri):
-            raise ValueError('The triangle is too big for barycentric interpolation!')
+        #if not Check.is_close_enough(A, A_tri):
+            #raise ValueError('The triangle is too big for barycentric interpolation!')
 
         weight1 = A1 / A
         weight2 = A2 / A
@@ -879,29 +892,40 @@ class Interp:
         nlon_new = mesh_new.lat2d.shape[1]
 
         weights = np.ndarray(shape=(3,nlat_new,nlon_new))
+        weights[:,:,:] = undef
 
-        tris = np.ndarray(shape=(nlat_new,nlon_new))
+        lat_index = np.ndarray(shape=(3,nlat_new,nlon_new))
+        lat_index[:,:,:] = undef
+
+        lon_index = np.ndarray(shape=(3,nlat_new,nlon_new))
+        lon_index[:,:,:] = undef
 
         print(colors.green('Runing regrid...'))
 
         #pbar = progressbar.ProgressBar()
         #for i in pbar(np.arange(nlat_new)):
+            #for j in np.arange(nlon_new):
+
         for i in np.arange(nlat_new):
             print(colors.green('Processing the (' + str(i+1) + ' of ' + str(nlat_new) + ') row... ' + '{:3.0f}'.format((i+1)/nlat_new*100) + '%'))
             pbar = progressbar.ProgressBar()
             for j in pbar(np.arange(nlon_new)):
-            #for j in np.arange(nlon_new):
                 p_new = Point(mesh_new.lat2d[i,j], mesh_new.lon2d[i,j])
                 p_old = Point(mesh_old.lat2d[i,j], mesh_old.lon2d[i,j])
 
-                #if Check.is_equal(p_new, p_old):
-                if Check.is_one_of_grids(p_new, mesh_old):
-                #if (mesh_new.lat2d[i,j], mesh_new.lon2d[i,j]) in grids:
+                if Check.is_equal(p_new, p_old):
+                #if Check.is_one_of_grids(p_new, mesh_old):
                     #print(colors.green('p_new is in the old mesh!'), i,j)
                     continue
                 else:
-                    tri = Search.triangle(p_new, mesh_old)
+                    tri, (p1_lat_index, p1_lon_index), (p2_lat_index, p2_lon_index), (p3_lat_index, p3_lon_index) = Search.triangle(p_new, mesh_old)
+                    #print((p1_lat_index, p1_lon_index), (p2_lat_index, p2_lon_index), (p3_lat_index, p3_lon_index))
 
                     #quadr = Search.quadrangle(p_new, mesh_old)
-                    #weights[:,i,j] = Interp.barycentric(p, tri)
-                    #tris[i,j] = tri
+
+                    weights[:,i,j] = Interp.barycentric(p_new, tri)
+                    #print(Interp.barycentric(p_new, tri))
+                    lat_index[:,i,j] = p1_lat_index, p2_lat_index, p3_lat_index
+                    lon_index[:,i,j] = p1_lon_index, p2_lon_index, p3_lon_index
+
+        return weights, lat_index, lon_index
