@@ -18,7 +18,8 @@ class Earth:
     radius = 6371 # km
     diameter = 2 * math.pi * radius # km
 
-undef = -99999.
+class System:
+    undef = -99999.
 
 #========================================================================================
 
@@ -877,10 +878,13 @@ class Interp:
 
         return weight1, weight2, weight3
 
-    def regrid(mesh_old, mesh_new):
-        ''' (mesh_old, mesh_new)
+    def regrid(mesh_old, mesh_new, method='standard'):
+        ''' (mesh_old, mesh_new) -> matrix of weights and points indices.
 
         Calculate the remapping coefficients (weights) from an old mesh to a new mesh.
+        When method == standard, the search algorithm can resolve any situation but slow;
+        when method == quick, the situation is that mesh_old and mesh_new are very similar
+        to each other with some points nudged.
         '''
         #cdef int i, j
 
@@ -892,40 +896,52 @@ class Interp:
         nlon_new = mesh_new.lat2d.shape[1]
 
         weights = np.ndarray(shape=(3,nlat_new,nlon_new))
-        weights[:,:,:] = undef
+        weights[:,:,:] = System.undef
 
         lat_index = np.ndarray(shape=(3,nlat_new,nlon_new))
-        lat_index[:,:,:] = undef
+        lat_index[:,:,:] = System.undef
 
         lon_index = np.ndarray(shape=(3,nlat_new,nlon_new))
-        lon_index[:,:,:] = undef
+        lon_index[:,:,:] = System.undef
 
         print(colors.green('Runing regrid...'))
 
-        #pbar = progressbar.ProgressBar()
-        #for i in pbar(np.arange(nlat_new)):
-            #for j in np.arange(nlon_new):
 
-        for i in np.arange(nlat_new):
-            print(colors.green('Processing the (' + str(i+1) + ' of ' + str(nlat_new) + ') row... ' + '{:3.0f}'.format((i+1)/nlat_new*100) + '%'))
+        if method == 'quick':
+
             pbar = progressbar.ProgressBar()
-            for j in pbar(np.arange(nlon_new)):
-                p_new = Point(mesh_new.lat2d[i,j], mesh_new.lon2d[i,j])
-                p_old = Point(mesh_old.lat2d[i,j], mesh_old.lon2d[i,j])
+            for i in pbar(np.arange(nlat_new)):
+                for j in np.arange(nlon_new):
+                    p_new = Point(mesh_new.lat2d[i,j], mesh_new.lon2d[i,j])
+                    p_old = Point(mesh_old.lat2d[i,j], mesh_old.lon2d[i,j])
 
-                if Check.is_equal(p_new, p_old):
-                #if Check.is_one_of_grids(p_new, mesh_old):
-                    #print(colors.green('p_new is in the old mesh!'), i,j)
-                    continue
-                else:
-                    tri, (p1_lat_index, p1_lon_index), (p2_lat_index, p2_lon_index), (p3_lat_index, p3_lon_index) = Search.triangle(p_new, mesh_old)
-                    #print((p1_lat_index, p1_lon_index), (p2_lat_index, p2_lon_index), (p3_lat_index, p3_lon_index))
+                    if Check.is_equal(p_new, p_old):
+                        continue
 
-                    #quadr = Search.quadrangle(p_new, mesh_old)
+                    else:
+                        tri, (p1_lat_index, p1_lon_index), (p2_lat_index, p2_lon_index), (p3_lat_index, p3_lon_index) = Search.triangle(p_new, mesh_old)
 
-                    weights[:,i,j] = Interp.barycentric(p_new, tri)
-                    #print(Interp.barycentric(p_new, tri))
-                    lat_index[:,i,j] = p1_lat_index, p2_lat_index, p3_lat_index
-                    lon_index[:,i,j] = p1_lon_index, p2_lon_index, p3_lon_index
+                        weights[:,i,j] = Interp.barycentric(p_new, tri)
+                        lat_index[:,i,j] = p1_lat_index, p2_lat_index, p3_lat_index
+                        lon_index[:,i,j] = p1_lon_index, p2_lon_index, p3_lon_index
+
+        if method == 'standard':
+
+            for i in np.arange(nlat_new):
+                print(colors.green('Processing the (' + str(i+1) + ' of ' + str(nlat_new) + ') row... ' + '{:3.0f}'.format((i+1)/nlat_new*100) + '%'))
+                pbar = progressbar.ProgressBar()
+                for j in pbar(np.arange(nlon_new)):
+                    p_new = Point(mesh_new.lat2d[i,j], mesh_new.lon2d[i,j])
+                    p_old = Point(mesh_old.lat2d[i,j], mesh_old.lon2d[i,j])
+
+                    if Check.is_equal(p_new, p_old):
+                        continue
+
+                    else:
+                        tri, (p1_lat_index, p1_lon_index), (p2_lat_index, p2_lon_index), (p3_lat_index, p3_lon_index) = Search.triangle(p_new, mesh_old)
+
+                        weights[:,i,j] = Interp.barycentric(p_new, tri)
+                        lat_index[:,i,j] = p1_lat_index, p2_lat_index, p3_lat_index
+                        lon_index[:,i,j] = p1_lon_index, p2_lon_index, p3_lon_index
 
         return weights, lat_index, lon_index
