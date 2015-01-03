@@ -934,7 +934,7 @@ class Interp:
                     p_new = Point(mesh_new.lat2d[i,j], mesh_new.lon2d[i,j])
                     p_old = Point(mesh_old.lat2d[i,j], mesh_old.lon2d[i,j])
 
-                    if Check.is_equal(p_new, p_old):
+                    if Check.is_one_of_grids(p_new, mesh_old):
                         continue
 
                     else:
