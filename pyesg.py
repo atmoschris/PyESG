@@ -750,6 +750,8 @@ class Search:
 
                         quadr2check = Quadrangle(p11, p12, p22, p21)
                         if Check.is_inside_quadrangle(point, quadr2check):
+                            print(point)
+                            print(quadr2check)
                             return quadr2check, aa-k, j, aa-k+1, j+1
 
                         p11 = Point(mesh.lat2d[cc+k-1,j], mesh.lon2d[cc+k-1,j])
@@ -759,6 +761,8 @@ class Search:
 
                         quadr2check = Quadrangle(p11, p12, p22, p21)
                         if Check.is_inside_quadrangle(point, quadr2check):
+                            print(point)
+                            print(quadr2check)
                             return quadr2check, cc+k-1, j, cc+k, j+1
 
                     for i in np.arange(aa, cc):
@@ -769,6 +773,8 @@ class Search:
 
                         quadr2check = Quadrangle(p11, p12, p22, p21)
                         if Check.is_inside_quadrangle(point, quadr2check):
+                            print(point)
+                            print(quadr2check)
                             return quadr2check, i, bb-k, i+1, bb-k+1
 
                         p11 = Point(mesh.lat2d[i,dd+k-1], mesh.lon2d[i,dd+k-1])
@@ -778,6 +784,8 @@ class Search:
 
                         quadr2check = Quadrangle(p11, p12, p22, p21)
                         if Check.is_inside_quadrangle(point, quadr2check):
+                            print(point)
+                            print(quadr2check)
                             return quadr2check, i, dd+k-1, i+1, dd+k
 
         #print(aa, bb, cc, dd)
@@ -792,12 +800,39 @@ class Search:
         return quadr, aa, bb, cc, dd
         #return aa, bb, cc, dd, quadr
 
+    def quadrangle_accurate(point, mesh):
+        '''
+        Search the quadrangle which the point located in. This method is accurate but slow.
+        '''
+        nlat = mesh.lat2d.shape[0]
+        nlon = mesh.lat2d.shape[1]
+
+        if Check.is_one_of_grids(point, mesh):
+            raise ValueError('The given point is one of the mesh grids!')
+
+        for i in np.arange(nlat-1):
+            for j in np.arange(nlon-1):
+                aa = i
+                bb = j
+                cc = i+1
+                dd = j+1
+
+                p11 = Point(mesh.lat2d[aa,bb], mesh.lon2d[aa,bb])
+                p12 = Point(mesh.lat2d[aa,dd], mesh.lon2d[aa,dd])
+                p21 = Point(mesh.lat2d[cc,bb], mesh.lon2d[cc,bb])
+                p22 = Point(mesh.lat2d[cc,dd], mesh.lon2d[cc,dd])
+
+                quadr = Quadrangle(p11, p12, p22, p21)
+
+                if Check.is_inside_quadrangle(point, quadr):
+                    return quadr, aa, bb, cc, dd
+
     def triangle(point, mesh):
         '''
         Search the triangle which the point located in.
         '''
-        quadr, aa, bb, cc, dd = Search.quadrangle(point, mesh)
-        #aa, bb, cc, dd, quadr = Search.quadrangle(point, mesh)
+        #quadr, aa, bb, cc, dd = Search.quadrangle(point, mesh)
+        quadr, aa, bb, cc, dd = Search.quadrangle_accurate(point, mesh)
         #print(aa, bb, cc, dd)
 
         tri1 = Triangle(quadr.p1, quadr.p2, quadr.p4)
@@ -872,6 +907,8 @@ class Interp:
         A_tri = triangle.area()
 
         #if not Check.is_close_enough(A, A_tri):
+            #print(A_tri - A)
+            #print(Check.is_inside_triangle(point, triangle))
             #raise ValueError('The triangle is too big for barycentric interpolation!')
 
         weight1 = A1 / A
@@ -884,8 +921,8 @@ class Interp:
         ''' (mesh_old, mesh_new) -> matrix of weights and points indices.
 
         Calculate the remapping coefficients (weights) from an old mesh to a new mesh.
-        When method == standard, the search algorithm can resolve any situation but slow;
-        when method == quick, the situation is that mesh_old and mesh_new are very similar
+        + When method == standard, the search algorithm can resolve any situation but slow;
+        + When method == quick, the situation is that mesh_old and mesh_new are very similar
         to each other with some points nudged.
         '''
         #cdef int i, j
@@ -907,7 +944,6 @@ class Interp:
         lon_index[:,:,:] = System.undef
 
         print(colors.green('Runing regrid...'))
-
 
         if method == 'quick':
 
