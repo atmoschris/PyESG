@@ -1,14 +1,16 @@
 from setuptools import setup
+import pyesg
 
 setup(
     name = 'pyesg',
-    py_modules = ['pyesg'],
-    version = '0.0.13',
+    version=pyesg.__version__,
     description = 'Python library of Earth Spherical Geometry (PyESG)',
+    long_description=open('README.md').read(),
     author='Feng Zhu',
     author_email='feng.zhu@ssec.wisc.edu',
     url = 'https://github.com/lyricorpse/PyESG',
     license='ISC',
+    py_modules = ['pyesg'],
     classifiers=[
         'Environment :: Console',
         'Intended Audience :: Developers',
