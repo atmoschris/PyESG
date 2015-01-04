@@ -419,7 +419,7 @@ class Check:
         '''
         Check if a given point is on the given arc.
         '''
-        if not Check.is_on_great_circle:
+        if not Check.is_on_great_circle(point, arc):
             return False
 
         arc1 = Arc(point, arc.p1)
@@ -831,8 +831,8 @@ class Search:
         '''
         Search the triangle which the point located in.
         '''
-        #quadr, aa, bb, cc, dd = Search.quadrangle(point, mesh)
-        quadr, aa, bb, cc, dd = Search.quadrangle_accurate(point, mesh)
+        quadr, aa, bb, cc, dd = Search.quadrangle(point, mesh)
+        #quadr, aa, bb, cc, dd = Search.quadrangle_accurate(point, mesh)
         #print(aa, bb, cc, dd)
 
         tri1 = Triangle(quadr.p1, quadr.p2, quadr.p4)
