@@ -32,7 +32,7 @@
               href="about.html"/>
     <link rel="top" title="PyESG 0.0.13 documentation" href="index.html"/>
         <link rel="next" title="Spherical Geometry" href="spherical_geometry.html"/>
-        <link rel="prev" title="Welcome to PyESG’s documentation!" href="index.html"/> 
+        <link rel="prev" title="PyESG Documentation" href="index.html"/> 
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
@@ -66,19 +66,23 @@
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="spherical_geometry.html">Spherical Geometry</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#point">Point</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#arc">Arc</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#triangle">Triangle</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#quadrangle">Quadrangle</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#mesh">Mesh</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#distance-between-two-points">Distance between two points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#waypoints-during-an-arc">Waypoints during an arc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#intersection-betweeen-two-arcs">Intersection betweeen two arcs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#angle-between-two-arcs">Angle between two arcs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#triangle-area">Triangle area</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#triangle-inside-test">Triangle inside test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#quadrangle-area">Quadrangle area</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#quadrangle-inside-test">Quadrangle inside test</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="regridding.html#basic-idea">Basic Idea</a></li>
 <li class="toctree-l2"><a class="reference internal" href="regridding.html#search">Search</a></li>
 <li class="toctree-l2"><a class="reference internal" href="regridding.html#interpolation">Interpolation</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="code.html">Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">Souce code</a></li>
 <li class="toctree-l1"><a class="reference internal" href="about.html">About</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="about.html#author">Author</a></li>
 <li class="toctree-l2"><a class="reference internal" href="about.html#license">License</a></li>
@@ -121,9 +125,21 @@
             
   <div class="section" id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<p>The Python library of Earth Spherical Geometry (PyESG) is aiming to perform spherical
-geometry on the earth and interpolate data from an unstructured mesh grid to another
-one, which is the so-called &#8220;regridding&#8221; or &#8220;remapping&#8221;.</p>
+<p>The Python Library of Earth Spherical Geometry (PyESG) is aiming to perform spherical geometry on the earth and interpolate data from an unstructured mesh grid to another one, which is the so-called &#8220;regridding&#8221; or &#8220;remapping&#8221;.
+Thus two main usages of PyESG are:</p>
+<ul class="simple">
+<li>Spherical geometry</li>
+<li>Regridding</li>
+</ul>
+<p>and the second usage (regridding) is the main goal of this library.</p>
+<p>There are some existing implementations of regridding, such as <a class="reference external" href="http://www.ncl.ucar.edu">NCL</a> and <a class="reference external" href="http://www.earthsystemmodeling.org">EMSF</a>.
+<a class="reference external" href="http://www.ncl.ucar.edu">NCL</a> mainly performs interpolation between regular mesh grids, and recently (after the version of <a class="reference external" href="http://www.ncl.ucar.edu/Document/Functions/ESMF/ESMF_regrid.shtml">6.1.0</a>) it concludes the implementation of <a class="reference external" href="http://www.earthsystemmodeling.org">EMSF</a>, which performs interpolation between any mesh grids.
+However, the APIs of <a class="reference external" href="http://www.earthsystemmodeling.org">EMSF</a> are ported to specific global models that it is not so convinient to be used in a lightweighted way.
+By a lightweighted way I mean calling a function like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">func</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mesh_old</span><span class="p">,</span> <span class="n">mesh_new</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Therefore, PyESG is developed to make regridding between any mesh grids easier.</p>
 </div>
 
 
@@ -135,7 +151,7 @@ one, which is the so-called &#8220;regridding&#8221; or &#8220;remapping&#8221;.
         <a href="spherical_geometry.html" class="btn btn-neutral float-right" title="Spherical Geometry">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="Welcome to PyESG’s documentation!"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="PyESG Documentation"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

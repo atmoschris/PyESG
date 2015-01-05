@@ -12,3 +12,4 @@ pyesg.egg-info/PKG-INFO
 *.txt
 
 docs/source
+docs/*

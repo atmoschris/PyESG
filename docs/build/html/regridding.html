@@ -31,7 +31,7 @@
         <link rel="author" title="About these documents"
               href="about.html"/>
     <link rel="top" title="PyESG 0.0.13 documentation" href="index.html"/>
-        <link rel="next" title="Classes" href="code.html"/>
+        <link rel="next" title="Souce code" href="code.html"/>
         <link rel="prev" title="Spherical Geometry" href="spherical_geometry.html"/> 
 
   
@@ -66,19 +66,23 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="spherical_geometry.html">Spherical Geometry</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#point">Point</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#arc">Arc</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#triangle">Triangle</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#quadrangle">Quadrangle</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#mesh">Mesh</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#distance-between-two-points">Distance between two points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#waypoints-during-an-arc">Waypoints during an arc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#intersection-betweeen-two-arcs">Intersection betweeen two arcs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#angle-between-two-arcs">Angle between two arcs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#triangle-area">Triangle area</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#triangle-inside-test">Triangle inside test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#quadrangle-area">Quadrangle area</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spherical_geometry.html#quadrangle-inside-test">Quadrangle inside test</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">Regridding</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-idea">Basic Idea</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#search">Search</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#interpolation">Interpolation</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="code.html">Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">Souce code</a></li>
 <li class="toctree-l1"><a class="reference internal" href="about.html">About</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="about.html#author">Author</a></li>
 <li class="toctree-l2"><a class="reference internal" href="about.html#license">License</a></li>
@@ -122,6 +126,27 @@
   <div class="section" id="regridding">
 <h1>Regridding<a class="headerlink" href="#regridding" title="Permalink to this headline">¶</a></h1>
 <p>This section will introduce the algorithm for regridding in the PyESG.</p>
+<div class="section" id="basic-idea">
+<h2>Basic Idea<a class="headerlink" href="#basic-idea" title="Permalink to this headline">¶</a></h2>
+<p>The basic idea of regridding between two mesh grids, including the case of unstructured mesh grids, is interpolation.
+Spherical interpolation is very complicated, and it is assumed in PyESG that for a small regional area, planar interpolation is appropriage with limit error.
+Since the mesh grid is unstructured, the interpolation method used is <strong>barycentric interpolation</strong>.</p>
+<p>To make the API easy to use, the Python function of regridding is like below:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pyesg</span><span class="o">.</span><span class="n">Interp</span><span class="o">.</span><span class="n">regrid</span><span class="p">(</span><span class="n">mesh_old</span><span class="p">,</span> <span class="n">mesh_new</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This function dose not regrid a specific data, but calculate the regridding information when one performs regridding from <tt class="docutils literal"><span class="pre">mesh_old</span></tt> to <tt class="docutils literal"><span class="pre">mesh_new</span></tt>.
+If the mesh grids are two-dimensional, say <tt class="docutils literal"><span class="pre">(nlat,</span> <span class="pre">nlon)</span></tt>, then the shape of the return is <tt class="docutils literal"><span class="pre">(3,</span> <span class="pre">nlat,</span> <span class="pre">nlon)</span></tt>, which stores the location information and weights of the three points that used to calculate the interpolated result.</p>
+<p>So how to realize this function?</p>
+<ul class="simple">
+<li>Step 1: <a class="reference internal" href="#search">Search</a></li>
+</ul>
+<p>To calculate the interpolated value of a specific point <tt class="docutils literal"><span class="pre">(lat,</span> <span class="pre">lon)</span></tt> in the <tt class="docutils literal"><span class="pre">mesh_new</span></tt>, we need to find out the three points in the <tt class="docutils literal"><span class="pre">mesh_old</span></tt> used for interpolation.</p>
+<ul class="simple">
+<li>Step 2: <a class="reference internal" href="#interpolation">Interpolation</a></li>
+</ul>
+<p>After those three points are found, the barycentric interpolation can be performed.</p>
+</div>
 <div class="section" id="search">
 <h2>Search<a class="headerlink" href="#search" title="Permalink to this headline">¶</a></h2>
 </div>
@@ -136,7 +161,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="code.html" class="btn btn-neutral float-right" title="Classes">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="code.html" class="btn btn-neutral float-right" title="Souce code">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="spherical_geometry.html" class="btn btn-neutral" title="Spherical Geometry"><span class="fa fa-arrow-circle-left"></span> Previous</a>

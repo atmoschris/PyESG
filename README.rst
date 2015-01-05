@@ -1,4 +1,4 @@
-The Python library of Earth Spherical Geometry (PyESG)
+The Python Library of Earth Spherical Geometry (PyESG)
 ======================================================
 
 
