@@ -23,7 +23,8 @@ Some third-party modules are required:
 Installation
 ------------
 
-::
+To install PyESG, simply run::
+
     python3 setup.py install
 
 Architecture
