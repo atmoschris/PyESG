@@ -136,14 +136,16 @@ class Arc(object):
 
     def waypoint(self, k):
         ''' Calculate the location of a selected point (lat, lon) according to:
-        a) the location of point 1 (lat1, lon1);
-        b) the location of point 2 (lat2, lon2);
-        c) the coefficient k decides the position between point 1 and point 2,
-        e.g., when k = 0.0, (lat, lon) is point 1;
-              when k = 0.5, (lat, lon) is the mid-point;
-              when k = 1.0, (lat, lon) is point 2.
+        + the location of point 1 (lat1, lon1);
+        + the location of point 2 (lat2, lon2);
+        + the coefficient k decides the position between point 1 and point 2,
 
+        e.g.:
+        + when k = 0.0, (lat, lon) is point 1;
+        + when k = 0.5, (lat, lon) is the mid-point;
+        + when k = 1.0, (lat, lon) is point 2.
         [reference: http://en.wikipedia.org/wiki/Great-circle_navigation]
+
         '''
         alpha1 = math.atan2(
                 math.sin(self.delta_lon()),
@@ -242,9 +244,9 @@ class Triangle(object):
         ''' Calculate the area of the triangle bounded by the sides made by the
         three points p1 (lat1, lon1), p2 (lat2, lon2), and p3 (lat3, lon3) according to
         the Girard's Theorem:
-            area = R^2 * E,
+        $area = R^2 * E$,
         where R is the radius of the sphere, and E the angle excess:
-            E = A + B + C - pi.
+        $E = A + B + C - \pi$.
         Cosine rules are used to calculate the angles A, B, and C.
 
         [references:
@@ -252,6 +254,7 @@ class Triangle(object):
         http://en.wikipedia.org/wiki/Spherical_trigonometry
         http://mathforum.org/library/drmath/view/65316.html
         ]
+
         '''
         A, B, C = self.angles()
 
@@ -420,6 +423,7 @@ class Check:
         Check if a given point is on the given arc.
         '''
         if not Check.is_on_great_circle(point, arc):
+            #print('--------')
             return False
 
         arc1 = Arc(point, arc.p1)

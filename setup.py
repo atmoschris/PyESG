@@ -9,7 +9,7 @@ setup(
     author='Feng Zhu',
     author_email='feng.zhu@ssec.wisc.edu',
     url = 'https://github.com/lyricorpse/PyESG',
-    license='ISC',
+    license='BSD',
     py_modules = ['pyesg'],
     classifiers=[
         'Environment :: Console',

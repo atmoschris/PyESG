@@ -10,3 +10,5 @@ build/lib/pyesg.py
 pyesg.egg-info/PKG-INFO
 
 *.txt
+
+docs/source

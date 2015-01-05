@@ -20,4 +20,4 @@ Some third-party modules are required:
 
 ## About
 Author: [Feng Zhu](feng.zhu@ssec.wisc.edu)
-Copyright: [CC BY-NC-SA 3.0](http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en)
+License: BSD
