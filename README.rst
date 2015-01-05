@@ -20,6 +20,11 @@ Some third-party modules are required:
 * colors
 * progressbar2
 
+Installation
+------------
+::
+    python3 setup.py install
+
 Architecture
 ------------
 
@@ -28,6 +33,6 @@ Architecture
 About
 -----
 
-Author: [Feng Zhu](feng.zhu@ssec.wisc.edu)
+Author: Feng Zhu <feng.zhu at ssec.wisc.edu>
 
 License: BSD
