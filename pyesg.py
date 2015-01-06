@@ -648,8 +648,8 @@ class Search:
 
         Search the quadrangle which the point located in.
         '''
-        #cdef int i, j
-
+        #print(point)
+        #print(mesh)
         nlat = mesh.lat2d.shape[0]
         nlon = mesh.lat2d.shape[1]
 
@@ -673,6 +673,7 @@ class Search:
         bd = dd - bb
 
         while ac > 1 or bd > 1:
+
             last_ac = ac
             last_bd = bd
 
@@ -784,14 +785,31 @@ class Search:
                 elif Check.is_inside_quadrangle(point, quadr2):
                     aa = ee
 
+            #print((aa, bb), (cc, dd), (ee, ff))
             ac = cc - aa
             bd = dd - bb
 
             if last_ac == ac and last_bd == bd:
+                #print(point)
+                #print(aa, bb, cc, dd)
+                #p11_tmp = Point(mesh.lat2d[aa,bb], mesh.lon2d[aa,bb])
+                #p12_tmp = Point(mesh.lat2d[aa,dd], mesh.lon2d[aa,dd])
+                #p21_tmp = Point(mesh.lat2d[cc,bb], mesh.lon2d[cc,bb])
+                #p22_tmp = Point(mesh.lat2d[cc,dd], mesh.lon2d[cc,dd])
+                #quadr_tmp = Quadrangle(p11_tmp, p12_tmp, p22_tmp, p21_tmp)
+                #print(quadr_tmp)
+                #print(Check.is_inside_quadrangle(point, quadr_tmp))
+
                 for k in np.arange(1, 100):
+                    if k == 99:
+                        raise ValueError('Cannot find the quadrangle!')
+
                     print(colors.red('Need to search around... '+str(k)+' circle.'))
 
                     for j in np.arange(bb, dd):
+                        if aa - k < 0 or cc + k > nlat-1:
+                            break
+
                         p11 = Point(mesh.lat2d[aa-k,j], mesh.lon2d[aa-k,j])
                         p12 = Point(mesh.lat2d[aa-k,j+1], mesh.lon2d[aa-k,j+1])
                         p21 = Point(mesh.lat2d[aa-k+1,j], mesh.lon2d[aa-k+1,j])
@@ -801,6 +819,7 @@ class Search:
                         if Check.is_inside_quadrangle(point, quadr2check):
                             print(point)
                             print(quadr2check)
+                            print('aa-k, j, aa-k+1, j+1', aa-k, j, aa-k+1, j+1)
                             return quadr2check, aa-k, j, aa-k+1, j+1
 
                         p11 = Point(mesh.lat2d[cc+k-1,j], mesh.lon2d[cc+k-1,j])
@@ -812,9 +831,14 @@ class Search:
                         if Check.is_inside_quadrangle(point, quadr2check):
                             print(point)
                             print(quadr2check)
+                            print('cc+k-1, j, cc+k, j+1', cc+k-1, j, cc+k, j+1)
                             return quadr2check, cc+k-1, j, cc+k, j+1
 
                     for i in np.arange(aa, cc):
+
+                        if bb - k < 0 or dd + k > nlon-1:
+                            break
+
                         p11 = Point(mesh.lat2d[i,bb-k], mesh.lon2d[i,bb-k])
                         p12 = Point(mesh.lat2d[i,bb-k+1], mesh.lon2d[i,bb-k+1])
                         p21 = Point(mesh.lat2d[i+1,bb-k], mesh.lon2d[i+1,bb-k])
@@ -824,6 +848,7 @@ class Search:
                         if Check.is_inside_quadrangle(point, quadr2check):
                             print(point)
                             print(quadr2check)
+                            print('i, bb-k, i+1, bb-k+1', i, bb-k, i+1, bb-k+1)
                             return quadr2check, i, bb-k, i+1, bb-k+1
 
                         p11 = Point(mesh.lat2d[i,dd+k-1], mesh.lon2d[i,dd+k-1])
@@ -835,6 +860,7 @@ class Search:
                         if Check.is_inside_quadrangle(point, quadr2check):
                             print(point)
                             print(quadr2check)
+                            print('i, dd+k-1, i+1, dd+k', i, dd+k-1, i+1, dd+k)
                             return quadr2check, i, dd+k-1, i+1, dd+k
 
         #print(aa, bb, cc, dd)
@@ -974,8 +1000,6 @@ class Interp:
         + When method == quick, the situation is that mesh_old and mesh_new are very similar
         to each other with some points nudged.
         '''
-        #cdef int i, j
-
         nlat_old = mesh_old.lat2d.shape[0]
         nlon_old = mesh_old.lat2d.shape[1]
 
@@ -1006,7 +1030,7 @@ class Interp:
                         continue
 
                     else:
-                        print('Interpolating for', p_new)
+                        #print('Interpolating for', p_new)
                         tri, (p1_lat_index, p1_lon_index), (p2_lat_index, p2_lon_index), (p3_lat_index, p3_lon_index) = Search.triangle(p_new, mesh_old)
 
                         weights[:,i,j] = Interp.barycentric(p_new, tri)
@@ -1026,7 +1050,7 @@ class Interp:
                         continue
 
                     else:
-                        print('Interpolating for', p_new)
+                        #print('Interpolating for', p_new)
                         tri, (p1_lat_index, p1_lon_index), (p2_lat_index, p2_lon_index), (p3_lat_index, p3_lon_index) = Search.triangle(p_new, mesh_old)
 
                         weights[:,i,j] = Interp.barycentric(p_new, tri)
