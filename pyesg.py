@@ -62,7 +62,7 @@ class Point(object):
         return lon_deg
 
     def spherical_coord(self):
-        ''' p (lat, lon) -> x, y, z
+        ''' p (lat_rad, lon_rad) -> x, y, z
 
         Return the (x, y, z) in a UNIT spherical coordinate system.
 
@@ -397,11 +397,14 @@ class Check:
 
         n1 = np.cross(vec11, vec12)
         n2 = np.cross(vec21, vec22)
+        #print(n1)
+        #print(n2)
 
         t = np.cross(n1, n2)
         mag_t = math.sqrt(np.dot(t, t))
+        #print(mag_t)
 
-        if mag_t == 0:
+        if Check.is_close_enough(mag_t, 0):
             return True
         else:
             return False
@@ -440,13 +443,15 @@ class Check:
                 return False
 
         elif method == 'outer':
-            if Check.is_close_enough(max(d1,d2), d + min(d1,d2)):
+            if Check.is_close_enough(max(d1,d2), d+min(d1,d2)):
                 return True
             else:
                 return False
 
     def is_intersected(arc1, arc2):
         '''
+        TODO: debug
+
         Check if two great-circle arcs are intersected.
 
         [reference:
@@ -459,35 +464,49 @@ class Check:
         vec12 = arc1.p2.vector()
         vec21 = arc2.p1.vector()
         vec22 = arc2.p2.vector()
+        #print(vec11, vec12, vec21, vec22)
 
         n1 = np.cross(vec11, vec12)
         n2 = np.cross(vec21, vec22)
 
         t = np.cross(n1, n2)
         mag_t = math.sqrt(np.dot(t, t))
+        #print(t)
+        #print(mag_t)
 
-        if mag_t != 0:
+        if not Check.is_close_enough(mag_t, 0):
             p1 = t / mag_t
         else:
             raise ValueError('The given two arcs lie on the same great-circle!')
 
         p2 = -p1
+        #print(p1)
+        #print(p2, p2[0], p2[1], p2[2])
 
         lat1_deg = math.degrees(math.asin(p1[2]))
         lon1_deg = math.degrees(math.atan2(p1[1], p1[0]))
         intersected_p1 = Point(lat1_deg, lon1_deg)
+        #print(intersected_p1)
+        #print(Check.is_on_great_circle(intersected_p1, arc1))
+        #print(Check.is_on_great_circle(intersected_p1, arc2))
 
         lat2_deg = math.degrees(math.asin(p2[2]))
         lon2_deg = math.degrees(math.atan2(p2[1], p2[0]))
         intersected_p2 = Point(lat2_deg, lon2_deg)
+        #print(intersected_p2)
+        #print(arc1)
+        #print(Check.is_on_great_circle(intersected_p2, arc1))
+        #print(Check.is_on_great_circle(intersected_p2, arc2))
 
         arc_p1_11 = Arc(intersected_p1, arc1.p1)
         arc_p2_11 = Arc(intersected_p2, arc1.p1)
 
         if arc_p1_11.distance() <= arc_p2_11.distance():
             intersected_p = intersected_p1
+            #print('p = p1')
         else:
             intersected_p = intersected_p2
+            #print('p = p2')
 
         #print(intersected_p)
 
@@ -544,7 +563,8 @@ class Check:
         elif Check.is_waypoint(point, arc3, method='outer'):
             return False
 
-        north_pole = Point(90, 0)
+        #north_pole = Point(90, 0)
+        north_pole = Point(90, point.lon_deg())
         arc = Arc(point, north_pole)
 
         num_intersected_points = 0
@@ -602,6 +622,8 @@ class Check:
 class Search:
     def quadrangle(point, mesh):
         '''
+        TODO: debug
+
         Search the quadrangle which the point located in.
         '''
         #cdef int i, j
@@ -612,18 +634,19 @@ class Search:
         if Check.is_one_of_grids(point, mesh):
             raise ValueError('The given point is one of the mesh grids!')
 
-        p11_max = Point(mesh.lat2d[0,0], mesh.lon2d[0,0])
-        p12_max = Point(mesh.lat2d[0,nlon-1], mesh.lon2d[0,nlon-1])
-        p21_max = Point(mesh.lat2d[nlat-1,0], mesh.lon2d[nlat-1,0])
-        p22_max = Point(mesh.lat2d[nlat-1,nlon-1], mesh.lon2d[nlat-1,nlon-1])
+        aa, bb = 0, 0 # lower left corner
+        cc, dd = nlat-1, nlon-1 # upper right corner
+
+        p11_max = Point(mesh.lat2d[aa,bb], mesh.lon2d[aa,bb])
+        p12_max = Point(mesh.lat2d[aa,dd], mesh.lon2d[aa,dd])
+        p21_max = Point(mesh.lat2d[cc,bb], mesh.lon2d[cc,bb])
+        p22_max = Point(mesh.lat2d[cc,dd], mesh.lon2d[cc,dd])
 
         quadr_max = Quadrangle(p11_max, p12_max, p22_max, p21_max)
 
         if not Check.is_inside_quadrangle(point, quadr_max):
             raise ValueError('The given point is not inside the mesh!')
 
-        aa, bb = 0, 0 # left lower corner
-        cc, dd = nlat-1, nlon-1 # right upper corner
         ac = cc - aa
         bd = dd - bb
 
