@@ -11,9 +11,8 @@ Requirement
 -----------
 
 To use this program, you need to install Python with a version of 3.
-The development environment is [Anaconda Scientific Python Distribution](http://continuum.io/)
+The development environment is `Anaconda Scientific Python Distribution <http://continuum.io>`_
 with a version of Anaconda 2.0.1 (Python 3.4).
-
 Some third-party modules are required:
 
 * numpy
@@ -35,6 +34,6 @@ Architecture
 About
 -----
 
-Author: Feng Zhu <feng.zhu at ssec.wisc.edu>
+Author: `Feng Zhu <feng.zhu@ssec.wisc.edu>`_
 
 License: BSD

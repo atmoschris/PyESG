@@ -423,7 +423,11 @@ class Check:
 
     def is_waypoint(point, arc, method='inner'):
         '''
+        NOTE: When the length of the given arc is too long, the result may be wrong.
+
         Check if a given point is on the given arc.
+
+        [reference: http://en.wikipedia.org/wiki/Great-circle_navigation]
         '''
         if not Check.is_on_great_circle(point, arc):
             #print('--------')
@@ -431,10 +435,16 @@ class Check:
 
         arc1 = Arc(point, arc.p1)
         arc2 = Arc(point, arc.p2)
+        #print(point)
+        #print(arc.p1)
+        #print(arc.p2)
 
         d = arc.distance()
         d1 = arc1.distance()
         d2 = arc2.distance()
+        #print(d1+d2-d)
+        #print(Check.is_same_great_circle(arc1, arc2))
+        #print(Check.is_same_great_circle(arc1, arc))
 
         if method == 'inner':
             if Check.is_close_enough(d1 + d2, d):
@@ -489,14 +499,19 @@ class Check:
         #print(intersected_p1)
         #print(Check.is_on_great_circle(intersected_p1, arc1))
         #print(Check.is_on_great_circle(intersected_p1, arc2))
+        #print(Check.is_waypoint(intersected_p1, arc1))
+        #print(Check.is_waypoint(intersected_p1, arc2))
 
         lat2_deg = math.degrees(math.asin(p2[2]))
         lon2_deg = math.degrees(math.atan2(p2[1], p2[0]))
         intersected_p2 = Point(lat2_deg, lon2_deg)
         #print(intersected_p2)
         #print(arc1)
+        #print(arc2)
         #print(Check.is_on_great_circle(intersected_p2, arc1))
         #print(Check.is_on_great_circle(intersected_p2, arc2))
+        #print(Check.is_waypoint(intersected_p2, arc1))
+        #print(Check.is_waypoint(intersected_p2, arc2))
 
         arc_p1_11 = Arc(intersected_p1, arc1.p1)
         arc_p2_11 = Arc(intersected_p2, arc1.p1)

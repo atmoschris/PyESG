@@ -5,7 +5,7 @@ setup(
     name = 'pyesg',
     version=pyesg.__version__,
     description = 'Python library of Earth Spherical Geometry (PyESG)',
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
     author='Feng Zhu',
     author_email='feng.zhu@ssec.wisc.edu',
     url = 'https://github.com/lyricorpse/PyESG',
