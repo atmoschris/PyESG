@@ -206,6 +206,7 @@ class Triangle(object):
 
         if Check.is_same_great_circle(arc1, arc2) or Check.is_same_great_circle(arc1, arc3) or Check.is_same_great_circle(arc2, arc3):
             print(self.p1, self.p2, self.p3)
+            #import pdb; pdb.set_trace()
             raise ValueError('The three given points are on the same arc!')
 
     def __str__(self):
@@ -342,7 +343,7 @@ class Check:
         if p1 == None or p2 == None:
             return False
 
-        elif Check.is_close_enough(p1.lat, p2.lat) and Check.is_close_enough(p1.lon, p2.lon):
+        elif Check.is_close_enough(p1.lat, p2.lat, e=1e-8) and Check.is_close_enough(p1.lon, p2.lon, e=1e-8):
             return True
 
         else:
@@ -404,7 +405,7 @@ class Check:
         mag_t = math.sqrt(np.dot(t, t))
         #print(mag_t)
 
-        if Check.is_close_enough(mag_t, 0):
+        if Check.is_close_enough(mag_t, 0, e=1e-8):
             return True
         else:
             return False
@@ -442,21 +443,27 @@ class Check:
         d = arc.distance()
         d1 = arc1.distance()
         d2 = arc2.distance()
-        #print(d1+d2-d)
         #print(Check.is_same_great_circle(arc1, arc2))
         #print(Check.is_same_great_circle(arc1, arc))
+        #print('d, d1, d2', d, d1, d2)
+        #print('d1 + d2 - d', d1 + d2 - d)
 
         if method == 'inner':
-            if Check.is_close_enough(d1 + d2, d):
+            if Check.is_close_enough(d1+d2, d, e=1e-2):
                 return True
             else:
                 return False
 
         elif method == 'outer':
-            if Check.is_close_enough(max(d1,d2), d+min(d1,d2)):
+            if Check.is_close_enough(max(d1,d2), d+min(d1,d2), e=1e-2):
+                #print('close enough')
                 return True
             else:
+                #print('not close enough')
                 return False
+
+        else:
+            raise ValueError('Wrong is_waypoint method!')
 
     def is_intersected(arc1, arc2):
         '''
@@ -484,10 +491,10 @@ class Check:
         #print(t)
         #print(mag_t)
 
-        if not Check.is_close_enough(mag_t, 0):
-            p1 = t / mag_t
-        else:
+        if Check.is_close_enough(mag_t, 0, e=1e-8):
             raise ValueError('The given two arcs lie on the same great-circle!')
+        else:
+            p1 = t / mag_t
 
         p2 = -p1
         #print(p1)
@@ -538,7 +545,7 @@ class Check:
         d1 = arc1.distance()
         d2 = arc2.distance()
 
-        if Check.is_close_enough(d_p_11+d_p_12, d1) and Check.is_close_enough(d_p_21+d_p_22, d2):
+        if Check.is_close_enough(d_p_11+d_p_12, d1, e=1e-4) and Check.is_close_enough(d_p_21+d_p_22, d2, e=1e-4):
             return True, intersected_p
         else:
             return False, None
@@ -917,7 +924,7 @@ class Interp:
             A2 = tri2.area()
             A3 = tri3.area()
 
-        if Check.is_waypoint(point, arc2):
+        elif Check.is_waypoint(point, arc2):
 
             tri1 = Triangle(point, triangle.p2, triangle.p3)
             tri3 = Triangle(point, triangle.p1, triangle.p2)
@@ -926,7 +933,7 @@ class Interp:
             A2 = 0
             A3 = tri3.area()
 
-        if Check.is_waypoint(point, arc3):
+        elif Check.is_waypoint(point, arc3):
 
             tri1 = Triangle(point, triangle.p2, triangle.p3)
             tri2 = Triangle(point, triangle.p1, triangle.p3)
@@ -999,13 +1006,14 @@ class Interp:
                         continue
 
                     else:
+                        print('Interpolating for', p_new)
                         tri, (p1_lat_index, p1_lon_index), (p2_lat_index, p2_lon_index), (p3_lat_index, p3_lon_index) = Search.triangle(p_new, mesh_old)
 
                         weights[:,i,j] = Interp.barycentric(p_new, tri)
                         lat_index[:,i,j] = p1_lat_index, p2_lat_index, p3_lat_index
                         lon_index[:,i,j] = p1_lon_index, p2_lon_index, p3_lon_index
 
-        if method == 'standard':
+        elif method == 'standard':
 
             for i in np.arange(nlat_new):
                 print(colors.green('Processing the (' + str(i+1) + ' of ' + str(nlat_new) + ') row... ' + '{:3.0f}'.format((i+1)/nlat_new*100) + '%'))
@@ -1018,10 +1026,14 @@ class Interp:
                         continue
 
                     else:
+                        print('Interpolating for', p_new)
                         tri, (p1_lat_index, p1_lon_index), (p2_lat_index, p2_lon_index), (p3_lat_index, p3_lon_index) = Search.triangle(p_new, mesh_old)
 
                         weights[:,i,j] = Interp.barycentric(p_new, tri)
                         lat_index[:,i,j] = p1_lat_index, p2_lat_index, p3_lat_index
                         lon_index[:,i,j] = p1_lon_index, p2_lon_index, p3_lon_index
+
+        else:
+            raise ValueError('Wrong regrid method!')
 
         return weights, lat_index, lon_index
