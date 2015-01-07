@@ -969,8 +969,9 @@ class Search:
                             aa = ee
                             bb = bb_tmp
                             break
-                        else:
-                            raise ValueError('Wrong case!')
+
+                else:
+                    raise ValueError('Wrong case!')
 
                 ac = cc - aa
                 bd = dd - bb
