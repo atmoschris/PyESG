@@ -739,51 +739,30 @@ class Search:
 
                 else:
                     print(colors.red('ac != 1 and bd != 1, need to search around...'))
+
                     if not Check.is_waypoint(p112, Arc(p111,p212)):
                         tri1 = Triangle(p111, p112, p212)
                         if Check.is_inside_triangle(point, tri1):
                             print('tri1')
+                            case = 1
 
                     if not Check.is_waypoint(p222, Arc(p212,p322)):
                         tri2 = Triangle(p212, p222, p322)
                         if Check.is_inside_triangle(point, tri2):
                             print('tri2')
-                            bb = dd
-                            last_dd = dd
-                            for k in np.arange(1,nlon-last_dd):
-                                print(k)
-                                dd_tmp = dd + k
-                                p111_tmp = Point(mesh.lat2d[aa,bb], mesh.lon2d[aa,bb])
-                                p112_tmp = Point(mesh.lat2d[aa,dd_tmp], mesh.lon2d[aa,dd_tmp])
-                                p121_tmp = Point(mesh.lat2d[ee,bb], mesh.lon2d[ee,bb])
-                                p122_tmp = Point(mesh.lat2d[ee,dd_tmp], mesh.lon2d[ee,dd_tmp])
-                                quadr1_tmp = Quadrangle(p111_tmp, p112_tmp, p122_tmp, p121_tmp)
-
-                                p211_tmp = Point(mesh.lat2d[ee,bb], mesh.lon2d[ee,bb])
-                                p212_tmp = Point(mesh.lat2d[ee,dd_tmp], mesh.lon2d[ee,dd_tmp])
-                                p221_tmp = Point(mesh.lat2d[cc,bb], mesh.lon2d[cc,bb])
-                                p222_tmp = Point(mesh.lat2d[cc,dd_tmp], mesh.lon2d[cc,dd_tmp])
-                                quadr2_tmp = Quadrangle(p111_tmp, p112_tmp, p122_tmp, p121_tmp)
-
-                                if Check.is_inside_quadrangle(point, quadr1_tmp):
-                                    cc = ee
-                                    dd = dd_tmp
-                                    break
-
-                                elif Check.is_inside_quadrangle(point, quadr2_tmp):
-                                    aa = ee
-                                    dd = dd_tmp
-                                    break
+                            case = 2
 
                     if not Check.is_waypoint(p321, Arc(p421,p322)):
                         tri3 = Triangle(p421, p321, p322)
                         if Check.is_inside_triangle(point, tri3):
                             print('tri3')
+                            case = 3
 
                     if not Check.is_waypoint(p121, Arc(p421,p111)):
                         tri4 = Triangle(p421, p121, p111)
                         if Check.is_inside_triangle(point, tri4):
                             print('tri4')
+                            case = 4
 
             elif ac == 1:
 
@@ -811,15 +790,18 @@ class Search:
 
                 else:
                     print(colors.red('ac == 1, need to search around...'))
+
                     if not Check.is_waypoint(p112, Arc(p111,p212)):
                         tri1 = Triangle(p111, p112, p212)
                         if Check.is_inside_triangle(point, tri1):
                             print('tri1')
+                            case = 1
 
                     if not Check.is_waypoint(p122, Arc(p121,p222)):
                         tri3 = Triangle(p122, p121, p222)
                         if Check.is_inside_triangle(point, tri3):
                             print('tri3')
+                            case = 3
 
             elif bd == 1:
 
@@ -847,92 +829,151 @@ class Search:
 
                 else:
                     print(colors.red('bd == 1, need to search around...'))
+
                     if not Check.is_waypoint(p122, Arc(p112,p222)):
                         tri2 = Triangle(p122, p112, p222)
                         if Check.is_inside_triangle(point, tri2):
                             print('tri2')
+                            case = 2
 
                     if not Check.is_waypoint(p121, Arc(p111,p221)):
                         tri4 = Triangle(p121, p111, p221)
                         if Check.is_inside_triangle(point, tri4):
                             print('tri4')
+                            case = 4
 
-            print((aa, bb), (cc, dd), (ee, ff))
+            #print((aa, bb), (cc, dd), (ee, ff))
             ac = cc - aa
             bd = dd - bb
 
-                #print(point)
-                ##print(aa, bb, cc, dd)
-                #p11_tmp = Point(mesh.lat2d[aa,bb], mesh.lon2d[aa,bb])
-                #p12_tmp = Point(mesh.lat2d[aa,dd], mesh.lon2d[aa,dd])
-                #p21_tmp = Point(mesh.lat2d[cc,bb], mesh.lon2d[cc,bb])
-                #p22_tmp = Point(mesh.lat2d[cc,dd], mesh.lon2d[cc,dd])
-                #quadr_tmp = Quadrangle(p11_tmp, p12_tmp, p22_tmp, p21_tmp)
-                #print(quadr_tmp)
-                #print(Check.is_inside_quadrangle(point, quadr_tmp))
+            if ac == last_ac and bd == last_bd:
 
-                #for k in np.arange(1, 100):
-                    #if k == 99:
-                        #raise ValueError('Cannot find the quadrangle!')
+                print(colors.red('Need to search around...'))
 
-                    #print(colors.red('Need to search around... '+str(k)+' circle.'))
+                if case == 1:
 
-                    #for j in np.arange(bb, dd):
-                        #if aa - k < 0 or cc + k > nlat-1:
-                            #break
+                    cc = aa
+                    last_aa = aa
+                    for k in np.arange(1, last_aa):
+                        print(k)
+                        aa_tmp = aa - k
 
-                        #p11 = Point(mesh.lat2d[aa-k,j], mesh.lon2d[aa-k,j])
-                        #p12 = Point(mesh.lat2d[aa-k,j+1], mesh.lon2d[aa-k,j+1])
-                        #p21 = Point(mesh.lat2d[aa-k+1,j], mesh.lon2d[aa-k+1,j])
-                        #p22 = Point(mesh.lat2d[aa-k+1,j+1], mesh.lon2d[aa-k+1,j+1])
+                        p111_tmp = Point(mesh.lat2d[aa_tmp,bb], mesh.lon2d[aa_tmp,bb])
+                        p112_tmp = Point(mesh.lat2d[aa_tmp,ff], mesh.lon2d[aa_tmp,ff])
+                        p121_tmp = Point(mesh.lat2d[cc,bb], mesh.lon2d[cc,bb])
+                        p122_tmp = Point(mesh.lat2d[cc,ff], mesh.lon2d[cc,ff])
+                        quadr1_tmp = Quadrangle(p111_tmp, p112_tmp, p122_tmp, p121_tmp)
 
-                        #quadr2check = Quadrangle(p11, p12, p22, p21)
-                        #if Check.is_inside_quadrangle(point, quadr2check):
-                            #print(point)
-                            #print(quadr2check)
-                            #print('aa-k, j, aa-k+1, j+1', aa-k, j, aa-k+1, j+1)
-                            #return quadr2check, aa-k, j, aa-k+1, j+1
+                        p211_tmp = Point(mesh.lat2d[aa_tmp,ff], mesh.lon2d[aa_tmp,ff])
+                        p212_tmp = Point(mesh.lat2d[aa_tmp,dd], mesh.lon2d[aa_tmp,dd])
+                        p221_tmp = Point(mesh.lat2d[cc,ff], mesh.lon2d[cc,ff])
+                        p222_tmp = Point(mesh.lat2d[cc,dd], mesh.lon2d[cc,dd])
+                        quadr2_tmp = Quadrangle(p211_tmp, p212_tmp, p222_tmp, p221_tmp)
 
-                        #p11 = Point(mesh.lat2d[cc+k-1,j], mesh.lon2d[cc+k-1,j])
-                        #p12 = Point(mesh.lat2d[cc+k-1,j+1], mesh.lon2d[cc+k-1,j+1])
-                        #p21 = Point(mesh.lat2d[cc+k,j], mesh.lon2d[cc+k,j])
-                        #p22 = Point(mesh.lat2d[cc+k,j+1], mesh.lon2d[cc+k,j+1])
+                        if Check.is_inside_quadrangle(point, quadr1_tmp):
+                            dd = ff
+                            aa = aa_tmp
+                            break
 
-                        #quadr2check = Quadrangle(p11, p12, p22, p21)
-                        #if Check.is_inside_quadrangle(point, quadr2check):
-                            #print(point)
-                            #print(quadr2check)
-                            #print('cc+k-1, j, cc+k, j+1', cc+k-1, j, cc+k, j+1)
-                            #return quadr2check, cc+k-1, j, cc+k, j+1
+                        elif Check.is_inside_quadrangle(point, quadr2_tmp):
+                            bb = ff
+                            aa = aa_tmp
+                            break
 
-                    #for i in np.arange(aa, cc):
+                elif case == 2:
 
-                        #if bb - k < 0 or dd + k > nlon-1:
-                            #break
+                    bb = dd
+                    last_dd = dd
+                    for k in np.arange(1, nlon-last_dd):
+                        print(k)
+                        dd_tmp = dd + k
 
-                        #p11 = Point(mesh.lat2d[i,bb-k], mesh.lon2d[i,bb-k])
-                        #p12 = Point(mesh.lat2d[i,bb-k+1], mesh.lon2d[i,bb-k+1])
-                        #p21 = Point(mesh.lat2d[i+1,bb-k], mesh.lon2d[i+1,bb-k])
-                        #p22 = Point(mesh.lat2d[i+1,bb-k+1], mesh.lon2d[i+1,bb-k+1])
+                        p111_tmp = Point(mesh.lat2d[aa,bb], mesh.lon2d[aa,bb])
+                        p112_tmp = Point(mesh.lat2d[aa,dd_tmp], mesh.lon2d[aa,dd_tmp])
+                        p121_tmp = Point(mesh.lat2d[ee,bb], mesh.lon2d[ee,bb])
+                        p122_tmp = Point(mesh.lat2d[ee,dd_tmp], mesh.lon2d[ee,dd_tmp])
+                        quadr1_tmp = Quadrangle(p111_tmp, p112_tmp, p122_tmp, p121_tmp)
 
-                        #quadr2check = Quadrangle(p11, p12, p22, p21)
-                        #if Check.is_inside_quadrangle(point, quadr2check):
-                            #print(point)
-                            #print(quadr2check)
-                            #print('i, bb-k, i+1, bb-k+1', i, bb-k, i+1, bb-k+1)
-                            #return quadr2check, i, bb-k, i+1, bb-k+1
+                        p211_tmp = Point(mesh.lat2d[ee,bb], mesh.lon2d[ee,bb])
+                        p212_tmp = Point(mesh.lat2d[ee,dd_tmp], mesh.lon2d[ee,dd_tmp])
+                        p221_tmp = Point(mesh.lat2d[cc,bb], mesh.lon2d[cc,bb])
+                        p222_tmp = Point(mesh.lat2d[cc,dd_tmp], mesh.lon2d[cc,dd_tmp])
+                        quadr2_tmp = Quadrangle(p211_tmp, p212_tmp, p222_tmp, p221_tmp)
 
-                        #p11 = Point(mesh.lat2d[i,dd+k-1], mesh.lon2d[i,dd+k-1])
-                        #p12 = Point(mesh.lat2d[i,dd+k], mesh.lon2d[i,dd+k])
-                        #p21 = Point(mesh.lat2d[i+1,dd+k-1], mesh.lon2d[i+1,dd+k-1])
-                        #p22 = Point(mesh.lat2d[i+1,dd+k], mesh.lon2d[i+1,dd+k])
+                        if Check.is_inside_quadrangle(point, quadr1_tmp):
+                            cc = ee
+                            dd = dd_tmp
+                            break
 
-                        #quadr2check = Quadrangle(p11, p12, p22, p21)
-                        #if Check.is_inside_quadrangle(point, quadr2check):
-                            #print(point)
-                            #print(quadr2check)
-                            #print('i, dd+k-1, i+1, dd+k', i, dd+k-1, i+1, dd+k)
-                            #return quadr2check, i, dd+k-1, i+1, dd+k
+                        elif Check.is_inside_quadrangle(point, quadr2_tmp):
+                            aa = ee
+                            dd = dd_tmp
+                            break
+
+                elif case == 3:
+
+                    aa = cc
+                    last_cc = cc
+                    for k in np.arange(1, nlat-last_cc):
+                        print(k)
+                        cc_tmp = cc + k
+
+                        p111_tmp = Point(mesh.lat2d[aa,bb], mesh.lon2d[aa,bb])
+                        p112_tmp = Point(mesh.lat2d[aa,ff], mesh.lon2d[aa,ff])
+                        p121_tmp = Point(mesh.lat2d[cc_tmp,bb], mesh.lon2d[cc_tmp,bb])
+                        p122_tmp = Point(mesh.lat2d[cc_tmp,ff], mesh.lon2d[cc_tmp,ff])
+                        quadr1_tmp = Quadrangle(p111_tmp, p112_tmp, p122_tmp, p121_tmp)
+
+                        p211_tmp = Point(mesh.lat2d[aa,ff], mesh.lon2d[aa,ff])
+                        p212_tmp = Point(mesh.lat2d[aa,dd], mesh.lon2d[aa,dd])
+                        p221_tmp = Point(mesh.lat2d[cc_tmp,ff], mesh.lon2d[cc_tmp,ff])
+                        p222_tmp = Point(mesh.lat2d[cc_tmp,dd], mesh.lon2d[cc_tmp,dd])
+                        quadr2_tmp = Quadrangle(p211_tmp, p212_tmp, p222_tmp, p221_tmp)
+
+                        if Check.is_inside_quadrangle(point, quadr1_tmp):
+                            dd = ff
+                            cc = cc_tmp
+                            break
+
+                        elif Check.is_inside_quadrangle(point, quadr2_tmp):
+                            bb = ff
+                            cc = cc_tmp
+                            break
+
+                elif case == 4:
+
+                    dd = bb
+                    last_bb = bb
+                    for k in np.arange(1, last_bb):
+                        print(k)
+                        bb_tmp = bb - k
+
+                        p111_tmp = Point(mesh.lat2d[aa,bb_tmp], mesh.lon2d[aa,bb_tmp])
+                        p112_tmp = Point(mesh.lat2d[aa,dd], mesh.lon2d[aa,dd])
+                        p121_tmp = Point(mesh.lat2d[ee,bb_tmp], mesh.lon2d[ee,bb_tmp])
+                        p122_tmp = Point(mesh.lat2d[ee,dd], mesh.lon2d[ee,dd])
+                        quadr1_tmp = Quadrangle(p111_tmp, p112_tmp, p122_tmp, p121_tmp)
+
+                        p211_tmp = Point(mesh.lat2d[ee,bb_tmp], mesh.lon2d[ee,bb_tmp])
+                        p212_tmp = Point(mesh.lat2d[ee,dd], mesh.lon2d[ee,dd])
+                        p221_tmp = Point(mesh.lat2d[cc,bb_tmp], mesh.lon2d[cc,bb_tmp])
+                        p222_tmp = Point(mesh.lat2d[cc,dd], mesh.lon2d[cc,dd])
+                        quadr2_tmp = Quadrangle(p211_tmp, p212_tmp, p222_tmp, p221_tmp)
+
+                        if Check.is_inside_quadrangle(point, quadr1_tmp):
+                            cc = ee
+                            bb = bb_tmp
+                            break
+
+                        elif Check.is_inside_quadrangle(point, quadr2_tmp):
+                            aa = ee
+                            bb = bb_tmp
+                            break
+                        else:
+                            raise ValueError('Wrong case!')
+
+                ac = cc - aa
+                bd = dd - bb
 
         #print(aa, bb, cc, dd)
         p11 = Point(mesh.lat2d[aa,bb], mesh.lon2d[aa,bb])
