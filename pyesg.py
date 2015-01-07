@@ -3,7 +3,7 @@
 #========================================================================================
 # Author: Feng Zhu
 # Date: 2014-12-30 18:19:41
-__version__ = '0.0.13'
+__version__ = '0.0.2'
 #========================================================================================
 import math
 
@@ -982,7 +982,8 @@ class Search:
         p22 = Point(mesh.lat2d[cc,dd], mesh.lon2d[cc,dd])
 
         quadr = Quadrangle(p11, p12, p22, p21)
-        #print(quadr)
+        print(point)
+        print(quadr)
 
         return quadr, aa, bb, cc, dd
         #return aa, bb, cc, dd, quadr
