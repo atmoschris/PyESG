@@ -3,7 +3,7 @@
 # ==============================================================================
 # Author: Feng Zhu
 # Date: 2014-12-30 18:19:41
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 # ==============================================================================
 import math
 
@@ -481,13 +481,13 @@ class Check:
         # print('d1 + d2 - d', d1 + d2 - d)
 
         if method == 'inner':
-            if Check.is_close_enough(d1+d2, d, e=1e-2):
+            if Check.is_close_enough(d1+d2, d, e=3.5*1e-3):
                 return True
             else:
                 return False
 
         elif method == 'outer':
-            if Check.is_close_enough(max(d1, d2), d+min(d1, d2), e=1e-2):
+            if Check.is_close_enough(max(d1, d2), d+min(d1, d2), e=3.5*1e-3):
                 # print('close enough')
                 return True
             else:
@@ -578,8 +578,8 @@ class Check:
         d2 = arc2.distance()
 
         if (
-            Check.is_close_enough(d_p_11+d_p_12, d1, e=1e-2) and
-            Check.is_close_enough(d_p_21+d_p_22, d2, e=1e-2)
+            Check.is_close_enough(d_p_11+d_p_12, d1, e=3.5*1e-3) and
+            Check.is_close_enough(d_p_21+d_p_22, d2, e=3.5*1e-3)
         ):
             return True, intersected_p
         else:
@@ -1097,6 +1097,12 @@ class Search:
                             break
 
                 else:
+                    print(point)
+                    print(aa, bb, cc, dd)
+                    print('quadr1:', quadr1)
+                    print('quadr2:', quadr2)
+                    print('quadr3:', quadr3)
+                    print('quadr4:', quadr4)
                     raise ValueError('Wrong case!')
 
                 ac = cc - aa

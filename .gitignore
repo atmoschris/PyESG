@@ -13,3 +13,12 @@ pyesg.egg-info/PKG-INFO
 
 docs/source
 tags
+.ropeproject/*
+
+.ropeproject/globalnames
+
+.ropeproject/objectdb
+
+.ropeproject/globalnames
+
+.ropeproject/objectdb
