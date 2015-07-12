@@ -12,7 +12,9 @@ pyesg.egg-info/PKG-INFO
 *.txt
 
 docs/source
+
 tags
+
 .ropeproject/*
 
 .ropeproject/globalnames

@@ -385,8 +385,8 @@ class Check:
             return False
 
         elif (
-            Check.is_close_enough(p1.lat, p2.lat, e=1e-8) and
-            Check.is_close_enough(p1.lon, p2.lon, e=1e-8)
+            Check.is_close_enough(p1.lat, p2.lat) and
+            Check.is_close_enough(p1.lon, p2.lon)
         ):
             return True
 
@@ -453,7 +453,7 @@ class Check:
         # mag_t = np.sqrt(np.dot(t, t))
         mag_t = np.linalg.norm(t)
 
-        if Check.is_close_enough(mag_t, 0, e=1e-8):
+        if Check.is_close_enough(mag_t, 0):
             return True
         else:
             return False
@@ -492,8 +492,10 @@ class Check:
             N1 = np.cross(A, P)
             N2 = np.cross(B, P)
             T = np.dot(N1, N2)
+            # print('[Debug] T:', T)
+
             if method == 'inner':
-                if T < 0:
+                if T <= 0:
                     return True
                 else:
                     return False
@@ -507,8 +509,6 @@ class Check:
 
     def is_intersected(arc1, arc2):
         '''
-        TODO: debug
-
         Check if two great-circle arcs are intersected.
 
         Reference:
@@ -527,65 +527,33 @@ class Check:
         t = np.cross(n1, n2)
         mag_t = np.sqrt(np.dot(t, t))
 
-        if Check.is_close_enough(mag_t, 0, e=1e-8):
+        if Check.is_close_enough(mag_t, 0):
             raise ValueError('The given two arcs lie on the same great-circle!')
         else:
             p1 = t / mag_t
 
         p2 = -p1
-        # print(p1)
-        # print(p2, p2[0], p2[1], p2[2])
 
         lat1_deg = np.degrees(np.arcsin(p1[2]))
         lon1_deg = np.degrees(np.arctan2(p1[1], p1[0]))
         intersected_p1 = Point(lat1_deg, lon1_deg)
-        # print(intersected_p1)
-        # print(Check.is_on_great_circle(intersected_p1, arc1))
-        # print(Check.is_on_great_circle(intersected_p1, arc2))
-        # print(Check.is_waypoint(intersected_p1, arc1))
-        # print(Check.is_waypoint(intersected_p1, arc2))
 
         lat2_deg = np.degrees(np.arcsin(p2[2]))
         lon2_deg = np.degrees(np.arctan2(p2[1], p2[0]))
         intersected_p2 = Point(lat2_deg, lon2_deg)
-        # print(intersected_p2)
-        # print(arc1)
-        # print(arc2)
-        # print(Check.is_on_great_circle(intersected_p2, arc1))
-        # print(Check.is_on_great_circle(intersected_p2, arc2))
-        # print(Check.is_waypoint(intersected_p2, arc1))
-        # print(Check.is_waypoint(intersected_p2, arc2))
-
-        arc_p1_11 = Arc(intersected_p1, arc1.p1)
-        arc_p2_11 = Arc(intersected_p2, arc1.p1)
-
-        if arc_p1_11.distance() <= arc_p2_11.distance():
-            intersected_p = intersected_p1
-            # print('p = p1')
-        else:
-            intersected_p = intersected_p2
-            # print('p = p2')
-
-        # print(intersected_p)
-
-        arc_p_11 = Arc(intersected_p, arc1.p1)
-        arc_p_12 = Arc(intersected_p, arc1.p2)
-        arc_p_21 = Arc(intersected_p, arc2.p1)
-        arc_p_22 = Arc(intersected_p, arc2.p2)
-
-        d_p_11 = arc_p_11.distance()
-        d_p_12 = arc_p_12.distance()
-        d_p_21 = arc_p_21.distance()
-        d_p_22 = arc_p_22.distance()
-
-        d1 = arc1.distance()
-        d2 = arc2.distance()
 
         if (
-            Check.is_close_enough(d_p_11+d_p_12, d1, e=3.5*1e-3) and
-            Check.is_close_enough(d_p_21+d_p_22, d2, e=3.5*1e-3)
+            Check.is_waypoint(intersected_p1, arc1) and
+            Check.is_waypoint(intersected_p1, arc2)
         ):
-            return True, intersected_p
+            return True, intersected_p1
+
+        elif (
+            Check.is_waypoint(intersected_p2, arc1) and
+            Check.is_waypoint(intersected_p2, arc2)
+        ):
+            return True, intersected_p2
+
         else:
             return False, None
 
