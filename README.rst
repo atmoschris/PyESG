@@ -12,11 +12,11 @@ Requirement
 
 To use this program, you need to install Python with a version of 3.
 The development environment is `Anaconda Scientific Python Distribution <http://continuum.io>`_
-with a version of Anaconda 2.0.1 (Python 3.4).
+with a version of Anaconda 2.3.0 (Python 3.4.3).
 Some third-party modules are required:
 
 * numpy
-* colors
+* click
 * progressbar2
 
 Installation
@@ -34,6 +34,6 @@ Architecture
 About
 -----
 
-Author: `Feng Zhu <feng.zhu@ssec.wisc.edu>`_
+Author: `Feng Zhu <feng.zhu@wisc.edu>`_
 
 License: BSD

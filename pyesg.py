@@ -2,13 +2,14 @@
 
 # ==============================================================================
 # Author: Feng Zhu
-# Date: 2014-12-30 18:19:41
-__version__ = '0.0.3'
+# Date: 2015-07-12 12:16:04 Version 0.0.8: the bugs in spehrical geometry fixed
+# Date: 2014-12-30 18:19:41 Version 0.0.3: a quick usable version
+__version__ = '0.0.8'
 # ==============================================================================
 import numpy as np
 
 import progressbar
-import colors
+import click
 
 # ==============================================================================
 # Constants
@@ -596,7 +597,6 @@ class Check:
         elif Check.is_waypoint(point, arc3, method='outer'):
             return False
 
-        # north_pole = Point(90, 0)
         north_pole = Point(90, point.lon_deg())
         arc = Arc(point, north_pole)
 
@@ -607,30 +607,23 @@ class Check:
         check3, inter_p3 = Check.is_intersected(arc, arc3)
 
         if check1 is True:
-            # print('Intersected with arc1:', arc1, 'at', inter_p1)
             num_intersected_points += 1
 
         if check2 is True:
-            # print('Intersected with arc2:', arc2, 'at', inter_p2)
             num_intersected_points += 1
 
         if check3 is True:
-            # print('Intersected with arc3:', arc3, 'at', inter_p3)
             num_intersected_points += 1
 
         if Check.is_equal(inter_p1, inter_p2):
-            # print('Same intersected point with arc1 and arc2.')
             num_intersected_points -= 1
 
         if Check.is_equal(inter_p1, inter_p3):
-            # print('Same intersected point with arc1 and arc3.')
             num_intersected_points -= 1
 
         if Check.is_equal(inter_p2, inter_p3):
-            # print('Same intersected point with arc2 and arc3.')
             num_intersected_points -= 1
 
-        # print(num_intersected_points)
         if num_intersected_points % 2 == 0:
             return False  # outside
         else:
@@ -643,8 +636,6 @@ class Check:
         '''
         tri1 = Triangle(quadrangle.p1, quadrangle.p2, quadrangle.p4)
         tri2 = Triangle(quadrangle.p2, quadrangle.p3, quadrangle.p4)
-        # tri3 = Triangle(quadrangle.p1, quadrangle.p3, quadrangle.p4)
-        # tri4 = Triangle(quadrangle.p1, quadrangle.p2, quadrangle.p3)
 
         if (
             Check.is_inside_triangle(point, tri1) or
@@ -657,19 +648,42 @@ class Check:
 
 class Search:
 
+    def quadrangle_bm(point, mesh):
+        '''
+        [Bench Mark]
+        Search the quadrangle which the point located in with the hardest way.
+        '''
+        if Check.is_one_of_grids(point, mesh):
+            raise ValueError('The given point is one of the mesh grids!')
+
+        nlat = mesh.lat2d.shape[0]
+        nlon = mesh.lat2d.shape[1]
+
+        for i in np.arange(nlat-1):
+            for j in np.arange(nlon-1):
+                pm11 = Point(mesh.lat2d[i, j], mesh.lon2d[i, j])
+                pm12 = Point(mesh.lat2d[i, j+1], mesh.lon2d[i, j+1])
+                pm21 = Point(mesh.lat2d[i+1, j], mesh.lon2d[i+1, j])
+                pm22 = Point(mesh.lat2d[i+1, j+1], mesh.lon2d[i+1, j+1])
+                quadr = Quadrangle(pm11, pm12, pm22, pm21)
+
+                if Check.is_inside_quadrangle(point, quadr):
+                    aa, bb, cc, dd = i, j, i+1, j+1
+                    return quadr, aa, bb, cc, dd
+
     def quadrangle(point, mesh):
         '''
         TODO: debug
 
         Search the quadrangle which the point located in.
         '''
+        if Check.is_one_of_grids(point, mesh):
+            raise ValueError('The given point is one of the mesh grids!')
+
         # print(point)
         # print(mesh)
         nlat = mesh.lat2d.shape[0]
         nlon = mesh.lat2d.shape[1]
-
-        if Check.is_one_of_grids(point, mesh):
-            raise ValueError('The given point is one of the mesh grids!')
 
         aa, bb = 0, 0  # lower left corner
         cc, dd = nlat-1, nlon-1  # upper right corner
@@ -754,10 +768,9 @@ class Search:
                     dd = ff
 
                 else:
-                    print(
-                        colors.red(
-                            'ac != 1 and bd != 1, need to search around...'
-                        )
+                    click.secho(
+                        'ac != 1 and bd != 1, need to search around...',
+                        fg='red'
                     )
 
                     if not Check.is_waypoint(p112, Arc(p111, p212)):
@@ -809,7 +822,7 @@ class Search:
                     bb = ff
 
                 else:
-                    print(colors.red('ac == 1, need to search around...'))
+                    click.secho('ac == 1, need to search around...', fg='red')
 
                     if not Check.is_waypoint(p112, Arc(p111, p212)):
                         tri1 = Triangle(p111, p112, p212)
@@ -848,7 +861,7 @@ class Search:
                     aa = ee
 
                 else:
-                    print(colors.red('bd == 1, need to search around...'))
+                    click.secho('bd == 1, need to search around...', fg='red')
 
                     if not Check.is_waypoint(p122, Arc(p112, p222)):
                         tri2 = Triangle(p122, p112, p222)
@@ -868,7 +881,7 @@ class Search:
 
             if ac == last_ac and bd == last_bd:
 
-                print(colors.red('Need to search around...'))
+                click.secho('Need to search around...', fg='red')
 
                 if case == 1:
 
@@ -1089,53 +1102,17 @@ class Search:
         p22 = Point(mesh.lat2d[cc, dd], mesh.lon2d[cc, dd])
 
         quadr = Quadrangle(p11, p12, p22, p21)
-        # print(point)
-        # print(quadr)
 
         return quadr, aa, bb, cc, dd
-        # return aa, bb, cc, dd, quadr
-
-    def quadrangle_accurate(point, mesh):
-        '''
-        Search the quadrangle which the point located in.
-        This method is accurate but slow.
-        '''
-        nlat = mesh.lat2d.shape[0]
-        nlon = mesh.lat2d.shape[1]
-
-        if Check.is_one_of_grids(point, mesh):
-            raise ValueError('The given point is one of the mesh grids!')
-
-        for i in np.arange(nlat-1):
-            for j in np.arange(nlon-1):
-                aa = i
-                bb = j
-                cc = i+1
-                dd = j+1
-
-                p11 = Point(mesh.lat2d[aa, bb], mesh.lon2d[aa, bb])
-                p12 = Point(mesh.lat2d[aa, dd], mesh.lon2d[aa, dd])
-                p21 = Point(mesh.lat2d[cc, bb], mesh.lon2d[cc, bb])
-                p22 = Point(mesh.lat2d[cc, dd], mesh.lon2d[cc, dd])
-
-                quadr = Quadrangle(p11, p12, p22, p21)
-
-                if Check.is_inside_quadrangle(point, quadr):
-                    return quadr, aa, bb, cc, dd
 
     def triangle(point, mesh):
         '''
         Search the triangle which the point located in.
         '''
         quadr, aa, bb, cc, dd = Search.quadrangle(point, mesh)
-        # quadr, aa, bb, cc, dd = Search.quadrangle_accurate(point, mesh)
-        # print(aa, bb, cc, dd)
 
         tri1 = Triangle(quadr.p1, quadr.p2, quadr.p4)
         tri2 = Triangle(quadr.p2, quadr.p3, quadr.p4)
-        # print(point)
-        # print(tri1)
-        # print(tri2)
 
         if Check.is_inside_triangle(point, tri1):
             return tri1, (aa, bb), (aa, dd), (cc, bb)
@@ -1160,7 +1137,7 @@ class Interp:
         if not Check.is_inside_triangle(point, triangle):
             raise ValueError('The given point is not in the given triangle!')
 
-        # print(colors.green('Interpolating'), point)
+        # print('Interpolating', point)
         # print(triangle)
 
         arc1 = Arc(triangle.p2, triangle.p3)
@@ -1246,7 +1223,7 @@ class Interp:
         lon_index = np.ndarray(shape=(3, nlat_new, nlon_new))
         lon_index[:, :, :] = System.undef
 
-        print(colors.green('Runing regrid...'))
+        click.secho('Runing regrid...', fg='green')
 
         if method == 'quick':
 
@@ -1279,12 +1256,10 @@ class Interp:
         elif method == 'standard':
 
             for i in np.arange(nlat_new):
-                print(
-                    colors.green(
-                        'Processing the (' + str(i+1) + ' of ' +
-                        str(nlat_new) + ') row... ' +
-                        '{:3.0f}'.format((i+1)/nlat_new*100) + '%'
-                    )
+                click.secho(
+                    'Processing the (' + str(i+1) + ' of ' +
+                    str(nlat_new) + ') row... ' +
+                    '{:3.0f}'.format((i+1)/nlat_new*100) + '%', fg='green'
                 )
                 pbar = progressbar.ProgressBar()
                 for j in pbar(np.arange(nlon_new)):
