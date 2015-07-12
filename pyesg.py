@@ -5,8 +5,6 @@
 # Date: 2014-12-30 18:19:41
 __version__ = '0.0.3'
 # ==============================================================================
-import math
-
 import numpy as np
 
 import progressbar
@@ -20,7 +18,7 @@ import colors
 class Earth:
 
     radius = 6371  # km
-    diameter = 2 * math.pi * radius  # km
+    diameter = 2 * np.pi * radius  # km
 
 
 class System:
@@ -45,26 +43,26 @@ class Point(object):
         if lon > 180 or lon < -180:
             raise ValueError('The range of longitude should be [-180, 180]!')
 
-        self.lat = math.radians(lat)
-        self.lon = math.radians(lon)
+        self.lat = np.radians(lat)
+        self.lon = np.radians(lon)
 
     def __str__(self):
-        lat_deg = math.degrees(self.lat)
-        lon_deg = math.degrees(self.lon)
+        lat_deg = np.degrees(self.lat)
+        lon_deg = np.degrees(self.lon)
 
         return '(' + str(lat_deg) + ', ' + str(lon_deg) + ')'
 
     def lat_deg(self):
         ''' radians -> degree
         '''
-        lat_deg = math.degrees(self.lat)
+        lat_deg = np.degrees(self.lat)
 
         return lat_deg
 
     def lon_deg(self):
         ''' radians -> degree
         '''
-        lon_deg = math.degrees(self.lon)
+        lon_deg = np.degrees(self.lon)
 
         return lon_deg
 
@@ -73,12 +71,12 @@ class Point(object):
 
         Return the (x, y, z) in a UNIT spherical coordinate system.
 
-        [reference: http://en.wikipedia.org/wiki/Spherical_coordinate_system]
+        Reference: `<http://en.wikipedia.org/wiki/Spherical_coordinate_system>`_
         '''
 
-        x = math.cos(self.lat) * math.cos(self.lon)
-        y = math.cos(self.lat) * math.sin(self.lon)
-        z = math.sin(self.lat)
+        x = np.cos(self.lat) * np.cos(self.lon)
+        y = np.cos(self.lat) * np.sin(self.lon)
+        z = np.sin(self.lat)
 
         return x, y, z
 
@@ -114,22 +112,41 @@ class Arc(object):
         return delta_lon
 
     def delta_sigma(self):
-        delta_sigma = 2 * math.asin(
-            math.sqrt(
-                math.sin(self.delta_lat()/2.)**2 +
-                math.cos(self.p1.lat) *
-                math.cos(self.p2.lat) *
-                math.sin(self.delta_lon()/2)**2
-            )
+        '''
+        Used a more solid equation for the calculation of delta sigma.
+
+        Reference: `<http://en.wikipedia.org/wiki/https://en.wikipedia.org/wiki/Great-circle_distance>`_
+        '''
+
+        # delta_sigma = 2 * np.arcsin(
+        #     np.sqrt(
+        #         np.sin(self.delta_lat()/2.)**2 +
+        #         np.cos(self.p1.lat) *
+        #         np.cos(self.p2.lat) *
+        #         np.sin(self.delta_lon()/2)**2
+        #     )
+        # )
+
+        delta_sigma = np.arctan2(
+            np.sqrt(
+                (np.cos(self.p2.lat)*np.sin(self.delta_lon()))**2 +
+                (
+                    np.cos(self.p1.lat)*np.sin(self.p2.lat) -
+                    np.sin(self.p1.lat)*np.cos(self.p2.lat) *
+                    np.cos(self.delta_lon())
+                )**2
+            ),
+            np.sin(self.p1.lat)*np.sin(self.p2.lat) +
+            np.cos(self.p2.lat)*np.cos(self.p2.lat)*np.cos(self.delta_lon())
         )
 
         return delta_sigma
 
     def distance(self):
         '''
-        Calculate the great-circle distance of the arc.
+        The difficulty is the calculation of delta_sigma()
 
-        [reference: http://en.wikipedia.org/wiki/Great-circle_distance]
+        Reference: `<http://en.wikipedia.org/wiki/https://en.wikipedia.org/wiki/Great-circle_distance>`_
         '''
 
         distance = Earth.radius * self.delta_sigma()
@@ -141,66 +158,59 @@ class Arc(object):
         Convert great-circle distance on the earth to radians.
         '''
 
-        rad = 2 * math.pi * self.distance() / Earth.diameter
+        rad = 2 * np.pi * self.distance() / Earth.diameter
 
         return rad
 
     def waypoint(self, k):
         ''' Calculate the location of a selected point (lat, lon) according to:
-        + the location of point 1 (lat1, lon1);
-        + the location of point 2 (lat2, lon2);
-        + the coefficient k decides the position between point 1 and point 2,
+        * the location of point 1 (lat1, lon1);
+        * the location of point 2 (lat2, lon2);
+        * the coefficient k decides the position between point 1 and point 2,
 
         e.g.:
-        + when k = 0.0, (lat, lon) is point 1;
-        + when k = 0.5, (lat, lon) is the mid-point;
-        + when k = 1.0, (lat, lon) is point 2.
-        [reference: http://en.wikipedia.org/wiki/Great-circle_navigation]
+        * when k = 0.0, (lat, lon) is point 1;
+        * when k = 0.5, (lat, lon) is the mid-point;
+        * when k = 1.0, (lat, lon) is point 2.
+
+        Reference: `<http://en.wikipedia.org/wiki/Great-circle_navigation>`_
 
         '''
-        alpha1 = math.atan2(
-            math.sin(self.delta_lon()),
-            (math.cos(self.p1.lat)) *
-            math.tan(self.p2.lat) -
-            math.sin(self.p1.lat) *
-            math.cos(self.delta_lon())
+        alpha1 = np.arctan2(
+            np.sin(self.delta_lon()),
+            np.cos(self.p1.lat)*np.tan(self.p2.lat) -
+            np.sin(self.p1.lat)*np.cos(self.delta_lon())
         )
 
-        alpha0 = math.asin(
-            math.sin(alpha1) * math.cos(self.p1.lat)
+        alpha0 = np.arcsin(np.sin(alpha1) * np.cos(self.p1.lat))
+
+        sigma01 = np.arctan2(
+            np.tan(self.p1.lat),
+            np.cos(alpha1)
+        )  # Napier's rules
+
+        sigma = k*self.delta_sigma() + sigma01
+
+        lat = np.arctan2(
+            np.cos(alpha0) * np.sin(sigma),
+            np.sqrt(np.cos(sigma)**2 + np.sin(alpha0)**2*np.sin(sigma)**2)
         )
 
-        sigma01 = math.atan2(
-            math.tan(self.p1.lat),
-            math.cos(alpha1)
-        )
-
-        sigma02 = sigma01 + self.delta_sigma()
-
-        sigma = k * (sigma02-sigma01) + sigma01
-
-        lat = math.atan2(
-            math.cos(alpha0) * math.sin(sigma),
-            math.sqrt(
-                math.cos(sigma)**2 + math.sin(alpha0)**2*math.sin(sigma)**2
-            )
-        )
-
-        lon01 = math.atan2(
-            math.sin(alpha0) * math.sin(sigma01),
-            math.cos(sigma01)
+        lon01 = np.arctan2(
+            np.sin(alpha0) * np.sin(sigma01),
+            np.cos(sigma01)
         )
 
         lon0 = self.p1.lon - lon01
 
-        lon_tmp = math.atan2(
-            math.sin(alpha0) * math.sin(sigma),
-            math.cos(sigma)
+        lon_tmp = np.arctan2(
+            np.sin(alpha0) * np.sin(sigma),
+            np.cos(sigma)
         )
 
         lon = lon_tmp + lon0
 
-        wp = Point(math.degrees(lat), math.degrees(lon))
+        wp = Point(np.degrees(lat), np.degrees(lon))
 
         return wp
 
@@ -236,6 +246,8 @@ class Triangle(object):
         Calculate the included angle between two sides on the earth.
         If we set a is the side p2-p3, b the side p3-p1, and c the side p1-p2.
         Then the return value A is the included angle betwen sides b and c.
+
+        Reference: `<https://en.wikipedia.org/wiki/Spherical_law_of_cosines>`_
         '''
         arc1 = Arc(self.p2, self.p3)
         arc2 = Arc(self.p3, self.p1)
@@ -245,19 +257,19 @@ class Triangle(object):
         b = arc2.rad()
         c = arc3.rad()
 
-        A = math.acos(
-            (math.cos(a) - math.cos(b)*math.cos(c)) /
-            (math.sin(b)*math.sin(c))
+        A = np.arccos(
+            (np.cos(a) - np.cos(b)*np.cos(c)) /
+            (np.sin(b)*np.sin(c))
         )
 
-        B = math.acos(
-            (math.cos(b) - math.cos(a)*math.cos(c)) /
-            (math.sin(a)*math.sin(c))
+        B = np.arccos(
+            (np.cos(b) - np.cos(a)*np.cos(c)) /
+            (np.sin(a)*np.sin(c))
         )
 
-        C = math.acos(
-            (math.cos(c) - math.cos(a)*math.cos(b)) /
-            (math.sin(a)*math.sin(b))
+        C = np.arccos(
+            (np.cos(c) - np.cos(a)*np.cos(b)) /
+            (np.sin(a)*np.sin(b))
         )
 
         return A, B, C
@@ -271,16 +283,17 @@ class Triangle(object):
         $E = A + B + C - \pi$.
         Cosine rules are used to calculate the angles A, B, and C.
 
-        [references:
-        http://www.princeton.edu/~rvdb/WebGL/GirardThmProof.html
-        http://en.wikipedia.org/wiki/Spherical_trigonometry
-        http://mathforum.org/library/drmath/view/65316.html
+        References:
+        * `<http://mathworld.wolfram.com/SphericalTriangle.html>`_
+        * `<http://www.princeton.edu/~rvdb/WebGL/GirardThmProof.html>`_
+        * `<http://en.wikipedia.org/wiki/Spherical_trigonometry>`_
+        * `<http://mathforum.org/library/drmath/view/65316.html>`_
         ]
 
         '''
         A, B, C = self.angles()
 
-        E = A + B + C - math.pi
+        E = A + B + C - np.pi
 
         area = Earth.radius**2 * E
 
@@ -327,12 +340,12 @@ class Quadrangle(object):
     def area(self):
         '''
 
-        [reference: http://mathworld.wolfram.com/SphericalPolygon.html]
+        Reference: `<http://mathworld.wolfram.com/SphericalPolygon.html>`_
         '''
 
         A, B, C, D = self.angles()
 
-        E = A + B + C + D - 2*math.pi
+        E = A + B + C + D - 2*np.pi
 
         area = Earth.radius**2 * E
 
@@ -421,6 +434,12 @@ class Check:
     def is_same_great_circle(arc1, arc2):
         '''
         Check if two given arcs are on the same great_circle.
+
+        It is tricky to determine e.
+        Since 1 degree = 1e5 m,
+        when e=1e-8, the precision is about 1e-7 degree = 1 cm
+
+        Generally, this method is quite robust.
         '''
         vec11 = arc1.p1.vector()
         vec12 = arc1.p2.vector()
@@ -429,12 +448,10 @@ class Check:
 
         n1 = np.cross(vec11, vec12)
         n2 = np.cross(vec21, vec22)
-        # print(n1)
-        # print(n2)
 
         t = np.cross(n1, n2)
-        mag_t = math.sqrt(np.dot(t, t))
-        # print(mag_t)
+        # mag_t = np.sqrt(np.dot(t, t))
+        mag_t = np.linalg.norm(t)
 
         if Check.is_close_enough(mag_t, 0, e=1e-8):
             return True
@@ -444,6 +461,7 @@ class Check:
     def is_on_great_circle(point, arc):
         '''
         Check if a given point is on the great_circle defined by the given arc.
+        See is_same_great_circle.
         '''
         arc1 = Arc(point, arc.p1)
         arc2 = Arc(point, arc.p2)
@@ -455,47 +473,37 @@ class Check:
 
     def is_waypoint(point, arc, method='inner'):
         '''
-        NOTE: When the length of the given arc is too long,
-        the result may be wrong.
-
         Check if a given point is on the given arc.
 
-        [reference: http://en.wikipedia.org/wiki/Great-circle_navigation]
+        This method is similar to is_same_great_circle and is_intersected.
+        It is tricky to determin e.
+
+        Reference: `<http://en.wikipedia.org/wiki/Great-circle_navigation>`_
         '''
         if not Check.is_on_great_circle(point, arc):
-            # print('--------')
+            # print('The given point is not on the given great-circle.')
             return False
 
-        arc1 = Arc(point, arc.p1)
-        arc2 = Arc(point, arc.p2)
-        # print(point)
-        # print(arc.p1)
-        # print(arc.p2)
-
-        d = arc.distance()
-        d1 = arc1.distance()
-        d2 = arc2.distance()
-        # print(Check.is_same_great_circle(arc1, arc2))
-        # print(Check.is_same_great_circle(arc1, arc))
-        # print('d, d1, d2', d, d1, d2)
-        # print('d1 + d2 - d', d1 + d2 - d)
-
-        if method == 'inner':
-            if Check.is_close_enough(d1+d2, d, e=3.5*1e-3):
-                return True
-            else:
-                return False
-
-        elif method == 'outer':
-            if Check.is_close_enough(max(d1, d2), d+min(d1, d2), e=3.5*1e-3):
-                # print('close enough')
-                return True
-            else:
-                # print('not close enough')
-                return False
-
         else:
-            raise ValueError('Wrong is_waypoint method!')
+            A = arc.p1.vector()
+            B = arc.p2.vector()
+            P = point.vector()
+
+            N1 = np.cross(A, P)
+            N2 = np.cross(B, P)
+            T = np.dot(N1, N2)
+            if method == 'inner':
+                if T < 0:
+                    return True
+                else:
+                    return False
+            elif method == 'outer':
+                if T > 0:
+                    return True
+                else:
+                    return False
+            else:
+                raise ValueError('Wrong is_waypoint method!')
 
     def is_intersected(arc1, arc2):
         '''
@@ -503,25 +511,21 @@ class Check:
 
         Check if two great-circle arcs are intersected.
 
-        [reference:
-        http://www.mathworks.com/matlabcentral/newsreader/view_thread/276271
-        http://stackoverflow.com/questions/2954337/great-circle-rhumb-line-intersection
-        ]
+        Reference:
+        * `<http://www.mathworks.com/matlabcentral/newsreader/view_thread/276271>`_
+        * `<http://stackoverflow.com/questions/2954337/great-circle-rhumb-line-intersection>`_
         '''
 
         vec11 = arc1.p1.vector()
         vec12 = arc1.p2.vector()
         vec21 = arc2.p1.vector()
         vec22 = arc2.p2.vector()
-        # print(vec11, vec12, vec21, vec22)
 
         n1 = np.cross(vec11, vec12)
         n2 = np.cross(vec21, vec22)
 
         t = np.cross(n1, n2)
-        mag_t = math.sqrt(np.dot(t, t))
-        # print(t)
-        # print(mag_t)
+        mag_t = np.sqrt(np.dot(t, t))
 
         if Check.is_close_enough(mag_t, 0, e=1e-8):
             raise ValueError('The given two arcs lie on the same great-circle!')
@@ -532,8 +536,8 @@ class Check:
         # print(p1)
         # print(p2, p2[0], p2[1], p2[2])
 
-        lat1_deg = math.degrees(math.asin(p1[2]))
-        lon1_deg = math.degrees(math.atan2(p1[1], p1[0]))
+        lat1_deg = np.degrees(np.arcsin(p1[2]))
+        lon1_deg = np.degrees(np.arctan2(p1[1], p1[0]))
         intersected_p1 = Point(lat1_deg, lon1_deg)
         # print(intersected_p1)
         # print(Check.is_on_great_circle(intersected_p1, arc1))
@@ -541,8 +545,8 @@ class Check:
         # print(Check.is_waypoint(intersected_p1, arc1))
         # print(Check.is_waypoint(intersected_p1, arc2))
 
-        lat2_deg = math.degrees(math.asin(p2[2]))
-        lon2_deg = math.degrees(math.atan2(p2[1], p2[0]))
+        lat2_deg = np.degrees(np.arcsin(p2[2]))
+        lon2_deg = np.degrees(np.arctan2(p2[1], p2[0]))
         intersected_p2 = Point(lat2_deg, lon2_deg)
         # print(intersected_p2)
         # print(arc1)
@@ -607,6 +611,8 @@ class Check:
         '''
         Check if a given point (lat, lon) is inside
         (including on) the given triangle.
+
+        Reference: `<http://math.stackexchange.com/questions/1151428/point-within-a-spherical-triangle-given-areas>`_
         '''
         arc1 = Arc(triangle.p2, triangle.p3)
         arc2 = Arc(triangle.p3, triangle.p1)

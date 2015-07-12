@@ -1,0 +1,22 @@
+\select@language {english}
+\contentsline {chapter}{\numberline {1}Introduction}{3}{chapter.1}
+\contentsline {chapter}{\numberline {2}Spherical Geometry}{5}{chapter.2}
+\contentsline {section}{\numberline {2.1}Distance between two points}{5}{section.2.1}
+\contentsline {section}{\numberline {2.2}Waypoints during an arc}{5}{section.2.2}
+\contentsline {section}{\numberline {2.3}Intersection betweeen two arcs}{5}{section.2.3}
+\contentsline {section}{\numberline {2.4}Angle between two arcs}{5}{section.2.4}
+\contentsline {section}{\numberline {2.5}Triangle area}{5}{section.2.5}
+\contentsline {section}{\numberline {2.6}Triangle inside test}{5}{section.2.6}
+\contentsline {section}{\numberline {2.7}Quadrangle area}{5}{section.2.7}
+\contentsline {section}{\numberline {2.8}Quadrangle inside test}{5}{section.2.8}
+\contentsline {chapter}{\numberline {3}Regridding}{7}{chapter.3}
+\contentsline {section}{\numberline {3.1}Basic Idea}{7}{section.3.1}
+\contentsline {section}{\numberline {3.2}Search}{7}{section.3.2}
+\contentsline {section}{\numberline {3.3}Interpolation}{7}{section.3.3}
+\contentsline {chapter}{\numberline {4}Souce code}{9}{chapter.4}
+\contentsline {chapter}{\numberline {5}About}{11}{chapter.5}
+\contentsline {section}{\numberline {5.1}Author}{11}{section.5.1}
+\contentsline {section}{\numberline {5.2}License}{11}{section.5.2}
+\contentsline {chapter}{\numberline {6}Indices and tables}{13}{chapter.6}
+\contentsline {chapter}{Python Module Index}{15}{section*.22}
+\contentsline {chapter}{Index}{17}{section*.23}

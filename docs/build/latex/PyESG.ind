@@ -1,0 +1,62 @@
+\begin{theindex}
+\def\bigletter#1{{\Large\sffamily#1}\nopagebreak\vspace{1mm}}
+
+  \bigletter A
+  \item angles() (pyesg.Quadrangle method), \hyperpage{10}
+  \item angles() (pyesg.Triangle method), \hyperpage{10}
+  \item Arc (class in pyesg), \hyperpage{9}
+  \item area() (pyesg.Quadrangle method), \hyperpage{10}
+  \item area() (pyesg.Triangle method), \hyperpage{10}
+
+  \indexspace
+  \bigletter B
+  \item barycentric() (pyesg.Interp method), \hyperpage{9}
+
+  \indexspace
+  \bigletter D
+  \item distance() (pyesg.Arc method), \hyperpage{9}
+
+  \indexspace
+  \bigletter I
+  \item Interp (class in pyesg), \hyperpage{9}
+
+  \indexspace
+  \bigletter L
+  \item lat\_deg() (pyesg.Point method), \hyperpage{9}
+  \item lon\_deg() (pyesg.Point method), \hyperpage{9}
+
+  \indexspace
+  \bigletter M
+  \item Mesh (class in pyesg), \hyperpage{9}
+
+  \indexspace
+  \bigletter P
+  \item Point (class in pyesg), \hyperpage{9}
+  \item pyesg (module), \hyperpage{9}
+
+  \indexspace
+  \bigletter Q
+  \item Quadrangle (class in pyesg), \hyperpage{10}
+
+  \indexspace
+  \bigletter R
+  \item rad() (pyesg.Arc method), \hyperpage{9}
+  \item regrid() (pyesg.Interp method), \hyperpage{9}
+
+  \indexspace
+  \bigletter S
+  \item spherical\_coord() (pyesg.Point method), \hyperpage{9}
+
+  \indexspace
+  \bigletter T
+  \item Triangle (class in pyesg), \hyperpage{10}
+
+  \indexspace
+  \bigletter V
+  \item vector() (pyesg.Point method), \hyperpage{10}
+
+  \indexspace
+  \bigletter W
+  \item waypoint() (pyesg.Arc method), \hyperpage{9}
+
+\end{theindex}

@@ -22,3 +22,5 @@ tags
 .ropeproject/globalnames
 
 .ropeproject/objectdb
+
+*.ipynb

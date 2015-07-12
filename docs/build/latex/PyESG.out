@@ -1,0 +1,21 @@
+\BOOKMARK [0][-]{chapter.1}{Introduction}{}% 1
+\BOOKMARK [0][-]{chapter.2}{Spherical Geometry}{}% 2
+\BOOKMARK [1][-]{section.2.1}{Distance between two points}{chapter.2}% 3
+\BOOKMARK [1][-]{section.2.2}{Waypoints during an arc}{chapter.2}% 4
+\BOOKMARK [1][-]{section.2.3}{Intersection betweeen two arcs}{chapter.2}% 5
+\BOOKMARK [1][-]{section.2.4}{Angle between two arcs}{chapter.2}% 6
+\BOOKMARK [1][-]{section.2.5}{Triangle area}{chapter.2}% 7
+\BOOKMARK [1][-]{section.2.6}{Triangle inside test}{chapter.2}% 8
+\BOOKMARK [1][-]{section.2.7}{Quadrangle area}{chapter.2}% 9
+\BOOKMARK [1][-]{section.2.8}{Quadrangle inside test}{chapter.2}% 10
+\BOOKMARK [0][-]{chapter.3}{Regridding}{}% 11
+\BOOKMARK [1][-]{section.3.1}{Basic Idea}{chapter.3}% 12
+\BOOKMARK [1][-]{section.3.2}{Search}{chapter.3}% 13
+\BOOKMARK [1][-]{section.3.3}{Interpolation}{chapter.3}% 14
+\BOOKMARK [0][-]{chapter.4}{Souce code}{}% 15
+\BOOKMARK [0][-]{chapter.5}{About}{}% 16
+\BOOKMARK [1][-]{section.5.1}{Author}{chapter.5}% 17
+\BOOKMARK [1][-]{section.5.2}{License}{chapter.5}% 18
+\BOOKMARK [0][-]{chapter.6}{Indices and tables}{}% 19
+\BOOKMARK [0][-]{section*.22}{Python Module Index}{}% 20
+\BOOKMARK [0][-]{section*.23}{Index}{}% 21

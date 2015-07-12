@@ -127,25 +127,25 @@
 <span id="souce-code"></span><h1>Souce code<a class="headerlink" href="#module-pyesg" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="pyesg.Arc">
-<em class="property">class </em><tt class="descclassname">pyesg.</tt><tt class="descname">Arc</tt><big>(</big><em>p1</em>, <em>p2</em><big>)</big><a class="reference internal" href="_modules/pyesg.html#Arc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Arc" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pyesg.</code><code class="descname">Arc</code><span class="sig-paren">(</span><em>p1</em>, <em>p2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Arc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Arc" title="Permalink to this definition">¶</a></dt>
 <dd><p>An arc on the earth defined by two points p1 and p2.
 It also can be seen as the relationship between two points.</p>
 <dl class="method">
 <dt id="pyesg.Arc.distance">
-<tt class="descname">distance</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyesg.html#Arc.distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Arc.distance" title="Permalink to this definition">¶</a></dt>
+<code class="descname">distance</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Arc.distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Arc.distance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the great-circle distance of the arc.</p>
 <p>[reference: <a class="reference external" href="http://en.wikipedia.org/wiki/Great-circle_distance">http://en.wikipedia.org/wiki/Great-circle_distance</a>]</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyesg.Arc.rad">
-<tt class="descname">rad</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyesg.html#Arc.rad"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Arc.rad" title="Permalink to this definition">¶</a></dt>
+<code class="descname">rad</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Arc.rad"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Arc.rad" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert great-circle distance on the earth to radians.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyesg.Arc.waypoint">
-<tt class="descname">waypoint</tt><big>(</big><em>k</em><big>)</big><a class="reference internal" href="_modules/pyesg.html#Arc.waypoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Arc.waypoint" title="Permalink to this definition">¶</a></dt>
+<code class="descname">waypoint</code><span class="sig-paren">(</span><em>k</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Arc.waypoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Arc.waypoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the location of a selected point (lat, lon) according to:
 + the location of point 1 (lat1, lon1);
 + the location of point 2 (lat2, lon2);
@@ -161,23 +161,27 @@ It also can be seen as the relationship between two points.</p>
 
 <dl class="class">
 <dt id="pyesg.Interp">
-<em class="property">class </em><tt class="descclassname">pyesg.</tt><tt class="descname">Interp</tt><a class="reference internal" href="_modules/pyesg.html#Interp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Interp" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pyesg.</code><code class="descname">Interp</code><a class="reference internal" href="_modules/pyesg.html#Interp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Interp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interpolation algorithms.</p>
 <dl class="method">
 <dt id="pyesg.Interp.barycentric">
-<tt class="descname">barycentric</tt><big>(</big><em>point</em>, <em>triangle</em><big>)</big><a class="reference internal" href="_modules/pyesg.html#Interp.barycentric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Interp.barycentric" title="Permalink to this definition">¶</a></dt>
+<code class="descname">barycentric</code><span class="sig-paren">(</span><em>point</em>, <em>triangle</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Interp.barycentric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Interp.barycentric" title="Permalink to this definition">¶</a></dt>
 <dd><p>(point, triangle) -&gt; weight1, weight2, weight3</p>
 <p>Barycentric Interpolation: interpolation in a triangle.</p>
-<p>[reference: <a class="reference external" href="https://classes.soe.ucsc.edu/cmps160/Fall10/resources/barycentricInterpolation.pdf">https://classes.soe.ucsc.edu/cmps160/Fall10/resources/barycentricInterpolation.pdf</a>]</p>
+<p>[reference: <a class="reference external" href="https://classes.soe.ucsc.edu/cmps160/Fall10/">https://classes.soe.ucsc.edu/cmps160/Fall10/</a>
+resources/barycentricInterpolation.pdf]</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyesg.Interp.regrid">
-<tt class="descname">regrid</tt><big>(</big><em>mesh_old</em>, <em>mesh_new</em>, <em>method='standard'</em><big>)</big><a class="reference internal" href="_modules/pyesg.html#Interp.regrid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Interp.regrid" title="Permalink to this definition">¶</a></dt>
+<code class="descname">regrid</code><span class="sig-paren">(</span><em>mesh_old</em>, <em>mesh_new</em>, <em>method='standard'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Interp.regrid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Interp.regrid" title="Permalink to this definition">¶</a></dt>
 <dd><p>(mesh_old, mesh_new) -&gt; matrix of weights and points indices.</p>
-<p>Calculate the remapping coefficients (weights) from an old mesh to a new mesh.
-+ When method == standard, the search algorithm can resolve any situation but slow;
-+ When method == quick, the situation is that mesh_old and mesh_new are very similar
+<p>Calculate the remapping coefficients (weights)
+from an old mesh to a new mesh.
++ When method == standard,
+the search algorithm can resolve any situation but slow;
++ When method == quick,
+the situation is that mesh_old and mesh_new are very similar
 to each other with some points nudged.</p>
 </dd></dl>
 
@@ -185,37 +189,38 @@ to each other with some points nudged.</p>
 
 <dl class="class">
 <dt id="pyesg.Mesh">
-<em class="property">class </em><tt class="descclassname">pyesg.</tt><tt class="descname">Mesh</tt><big>(</big><em>lat2d</em>, <em>lon2d</em><big>)</big><a class="reference internal" href="_modules/pyesg.html#Mesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Mesh" title="Permalink to this definition">¶</a></dt>
-<dd><p>Unstructed mesh grids, which is defined by 2 dimenional arrays lat2d and lon2d.</p>
+<em class="property">class </em><code class="descclassname">pyesg.</code><code class="descname">Mesh</code><span class="sig-paren">(</span><em>lat2d</em>, <em>lon2d</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Mesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unstructed mesh grids, which is defined by
+2 dimenional arrays lat2d and lon2d.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pyesg.Point">
-<em class="property">class </em><tt class="descclassname">pyesg.</tt><tt class="descname">Point</tt><big>(</big><em>lat</em>, <em>lon</em><big>)</big><a class="reference internal" href="_modules/pyesg.html#Point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Point" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pyesg.</code><code class="descname">Point</code><span class="sig-paren">(</span><em>lat</em>, <em>lon</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Point" title="Permalink to this definition">¶</a></dt>
 <dd><p>A point on the earth defined by the latitude and longitude (unit: degree).</p>
 <dl class="method">
 <dt id="pyesg.Point.lat_deg">
-<tt class="descname">lat_deg</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyesg.html#Point.lat_deg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Point.lat_deg" title="Permalink to this definition">¶</a></dt>
+<code class="descname">lat_deg</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Point.lat_deg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Point.lat_deg" title="Permalink to this definition">¶</a></dt>
 <dd><p>radians -&gt; degree</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyesg.Point.lon_deg">
-<tt class="descname">lon_deg</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyesg.html#Point.lon_deg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Point.lon_deg" title="Permalink to this definition">¶</a></dt>
+<code class="descname">lon_deg</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Point.lon_deg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Point.lon_deg" title="Permalink to this definition">¶</a></dt>
 <dd><p>radians -&gt; degree</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyesg.Point.spherical_coord">
-<tt class="descname">spherical_coord</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyesg.html#Point.spherical_coord"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Point.spherical_coord" title="Permalink to this definition">¶</a></dt>
-<dd><p>p (lat, lon) -&gt; x, y, z</p>
+<code class="descname">spherical_coord</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Point.spherical_coord"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Point.spherical_coord" title="Permalink to this definition">¶</a></dt>
+<dd><p>p (lat_rad, lon_rad) -&gt; x, y, z</p>
 <p>Return the (x, y, z) in a UNIT spherical coordinate system.</p>
 <p>[reference: <a class="reference external" href="http://en.wikipedia.org/wiki/Spherical_coordinate_system">http://en.wikipedia.org/wiki/Spherical_coordinate_system</a>]</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyesg.Point.vector">
-<tt class="descname">vector</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyesg.html#Point.vector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Point.vector" title="Permalink to this definition">¶</a></dt>
+<code class="descname">vector</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Point.vector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Point.vector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the vector from the center of the Earth to the point.</p>
 </dd></dl>
 
@@ -223,19 +228,19 @@ to each other with some points nudged.</p>
 
 <dl class="class">
 <dt id="pyesg.Quadrangle">
-<em class="property">class </em><tt class="descclassname">pyesg.</tt><tt class="descname">Quadrangle</tt><big>(</big><em>p1</em>, <em>p2</em>, <em>p3</em>, <em>p4</em><big>)</big><a class="reference internal" href="_modules/pyesg.html#Quadrangle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Quadrangle" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pyesg.</code><code class="descname">Quadrangle</code><span class="sig-paren">(</span><em>p1</em>, <em>p2</em>, <em>p3</em>, <em>p4</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Quadrangle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Quadrangle" title="Permalink to this definition">¶</a></dt>
 <dd><p>An quadrangle on the earth defined by three points p1, p2, p3, and p4.
 It also can be seen as the relationship between four points.</p>
 <p>Note: p1 -&gt; p2 -&gt; p3 -&gt; p4 should be rotative.</p>
 <dl class="method">
 <dt id="pyesg.Quadrangle.angles">
-<tt class="descname">angles</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyesg.html#Quadrangle.angles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Quadrangle.angles" title="Permalink to this definition">¶</a></dt>
+<code class="descname">angles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Quadrangle.angles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Quadrangle.angles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Treated as two triangles.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyesg.Quadrangle.area">
-<tt class="descname">area</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyesg.html#Quadrangle.area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Quadrangle.area" title="Permalink to this definition">¶</a></dt>
+<code class="descname">area</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Quadrangle.area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Quadrangle.area" title="Permalink to this definition">¶</a></dt>
 <dd><p>[reference: <a class="reference external" href="http://mathworld.wolfram.com/SphericalPolygon.html">http://mathworld.wolfram.com/SphericalPolygon.html</a>]</p>
 </dd></dl>
 
@@ -243,12 +248,12 @@ It also can be seen as the relationship between four points.</p>
 
 <dl class="class">
 <dt id="pyesg.Triangle">
-<em class="property">class </em><tt class="descclassname">pyesg.</tt><tt class="descname">Triangle</tt><big>(</big><em>p1</em>, <em>p2</em>, <em>p3</em><big>)</big><a class="reference internal" href="_modules/pyesg.html#Triangle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Triangle" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pyesg.</code><code class="descname">Triangle</code><span class="sig-paren">(</span><em>p1</em>, <em>p2</em>, <em>p3</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Triangle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Triangle" title="Permalink to this definition">¶</a></dt>
 <dd><p>An triangle on the earth defined by three points p1, p2, and p3.
 It also can be seen as the relationship between three points.</p>
 <dl class="method">
 <dt id="pyesg.Triangle.angles">
-<tt class="descname">angles</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyesg.html#Triangle.angles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Triangle.angles" title="Permalink to this definition">¶</a></dt>
+<code class="descname">angles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Triangle.angles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Triangle.angles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the included angle between two sides on the earth.
 If we set a is the side p2-p3, b the side p3-p1, and c the side p1-p2.
 Then the return value A is the included angle betwen sides b and c.</p>
@@ -256,10 +261,10 @@ Then the return value A is the included angle betwen sides b and c.</p>
 
 <dl class="method">
 <dt id="pyesg.Triangle.area">
-<tt class="descname">area</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyesg.html#Triangle.area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Triangle.area" title="Permalink to this definition">¶</a></dt>
+<code class="descname">area</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyesg.html#Triangle.area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyesg.Triangle.area" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the area of the triangle bounded by the sides made by the
-three points p1 (lat1, lon1), p2 (lat2, lon2), and p3 (lat3, lon3) according to
-the Girard&#8217;s Theorem:
+three points p1 (lat1, lon1), p2 (lat2, lon2), and p3 (lat3, lon3)
+according to the Girard&#8217;s Theorem:
 $area = R^2 * E$,
 where R is the radius of the sphere, and E the angle excess:
 $E = A + B + C - pi$.

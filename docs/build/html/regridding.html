@@ -135,13 +135,13 @@ Since the mesh grid is unstructured, the interpolation method used is <strong>ba
 <div class="highlight-python"><div class="highlight"><pre><span class="n">pyesg</span><span class="o">.</span><span class="n">Interp</span><span class="o">.</span><span class="n">regrid</span><span class="p">(</span><span class="n">mesh_old</span><span class="p">,</span> <span class="n">mesh_new</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>This function dose not regrid a specific data, but calculate the regridding information when one performs regridding from <tt class="docutils literal"><span class="pre">mesh_old</span></tt> to <tt class="docutils literal"><span class="pre">mesh_new</span></tt>.
-If the mesh grids are two-dimensional, say <tt class="docutils literal"><span class="pre">(nlat,</span> <span class="pre">nlon)</span></tt>, then the shape of the return is <tt class="docutils literal"><span class="pre">(3,</span> <span class="pre">nlat,</span> <span class="pre">nlon)</span></tt>, which stores the location information and weights of the three points that used to calculate the interpolated result.</p>
+<p>This function dose not regrid a specific data, but calculate the regridding information when one performs regridding from <code class="docutils literal"><span class="pre">mesh_old</span></code> to <code class="docutils literal"><span class="pre">mesh_new</span></code>.
+If the mesh grids are two-dimensional, say <code class="docutils literal"><span class="pre">(nlat,</span> <span class="pre">nlon)</span></code>, then the shape of the return is <code class="docutils literal"><span class="pre">(3,</span> <span class="pre">nlat,</span> <span class="pre">nlon)</span></code>, which stores the location information and weights of the three points that used to calculate the interpolated result.</p>
 <p>So how to realize this function?</p>
 <ul class="simple">
 <li>Step 1: <a class="reference internal" href="#search">Search</a></li>
 </ul>
-<p>To calculate the interpolated value of a specific point <tt class="docutils literal"><span class="pre">(lat,</span> <span class="pre">lon)</span></tt> in the <tt class="docutils literal"><span class="pre">mesh_new</span></tt>, we need to find out the three points in the <tt class="docutils literal"><span class="pre">mesh_old</span></tt> used for interpolation.</p>
+<p>To calculate the interpolated value of a specific point <code class="docutils literal"><span class="pre">(lat,</span> <span class="pre">lon)</span></code> in the <code class="docutils literal"><span class="pre">mesh_new</span></code>, we need to find out the three points in the <code class="docutils literal"><span class="pre">mesh_old</span></code> used for interpolation.</p>
 <ul class="simple">
 <li>Step 2: <a class="reference internal" href="#interpolation">Interpolation</a></li>
 </ul>
