@@ -1,7 +1,6 @@
-test.py
 __pycache__
 
-build/lib/pyesg.py
+build
 
 *.dat
 
@@ -11,18 +10,8 @@ pyesg.egg-info/PKG-INFO
 
 *.txt
 
-docs/source
-
 tags
 
-.ropeproject/*
-
-.ropeproject/globalnames
-
-.ropeproject/objectdb
-
-.ropeproject/globalnames
-
-.ropeproject/objectdb
+.ropeproject
 
 *.ipynb
