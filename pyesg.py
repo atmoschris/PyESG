@@ -7,6 +7,8 @@
 __version__ = '0.0.8'
 # ==============================================================================
 import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.basemap import Basemap
 
 import progressbar
 import click
@@ -650,9 +652,11 @@ class Search:
 
     def quadrangle_bm(point, mesh):
         '''
-        [Bench Mark]
+        [bench mark algorithm]
         Search the quadrangle which the point located in with the hardest way.
         '''
+        quadr = None
+
         if Check.is_one_of_grids(point, mesh):
             raise ValueError('The given point is one of the mesh grids!')
 
@@ -671,10 +675,74 @@ class Search:
                     aa, bb, cc, dd = i, j, i+1, j+1
                     return quadr, aa, bb, cc, dd
 
+        if quadr is None:
+            raise ValueError('Quadrangle searching failed!')
+
+    def quadrangle_o1(point, mesh):
+        '''
+        [optimal version 1 based on the bench mark algorithm]
+        Search the quadrangle which the point located in.
+        '''
+        quadr = None
+
+        if Check.is_one_of_grids(point, mesh):
+            raise ValueError('The given point is one of the mesh grids!')
+
+        nlat = mesh.lat2d.shape[0]
+        nlon = mesh.lat2d.shape[1]
+
+        i_min = 1e8
+        i_max = -1e8
+        for i in np.arange(nlat-1):
+            if (
+                point.lat_deg() >= np.min(mesh.lat2d[i, :]) and
+                point.lat_deg() <= np.max(mesh.lat2d[i+1, :])
+            ):
+                if i < i_min:
+                    i_min = i
+
+                if i > i_max:
+                    i_max = i
+
+        j_min = 1e8
+        j_max = -1e8
+        for j in np.arange(nlon-1):
+            if (
+                point.lon_deg() >= np.min(mesh.lon2d[:, j]) and
+                point.lon_deg() <= np.max(mesh.lon2d[:, j+1])
+            ):
+                if j < j_min:
+                    j_min = j
+
+                if j > j_max:
+                    j_max = j
+
+        smesh = Mesh(
+            mesh.lat2d[i_min:i_max+1, j_min:j_max+1],
+            mesh.lon2d[i_min:i_max+1, j_min:j_max+1]
+        )
+
+        nlat_small = smesh.lat2d.shape[0]
+        nlon_small = smesh.lat2d.shape[1]
+
+        for i in np.arange(nlat_small-1):
+            for j in np.arange(nlon_small-1):
+                pm11 = Point(smesh.lat2d[i, j], smesh.lon2d[i, j])
+                pm12 = Point(smesh.lat2d[i, j+1], smesh.lon2d[i, j+1])
+                pm21 = Point(smesh.lat2d[i+1, j], smesh.lon2d[i+1, j])
+                pm22 = Point(smesh.lat2d[i+1, j+1], smesh.lon2d[i+1, j+1])
+                quadr = Quadrangle(pm11, pm12, pm22, pm21)
+
+                if Check.is_inside_quadrangle(point, quadr):
+                    aa, bb, cc, dd = i+i_min, j+j_min, i+1+i_min, j+1+j_min
+                    return quadr, aa, bb, cc, dd
+
+        if quadr is None:
+            raise ValueError('Quadrangle searching failed!')
+
     def quadrangle(point, mesh):
         '''
-        TODO: debug
-
+        [Legacy: too complicated, and sometimes incorrect]
         Search the quadrangle which the point located in.
         '''
         if Check.is_one_of_grids(point, mesh):
@@ -1290,3 +1358,28 @@ class Interp:
             raise ValueError('Wrong regrid method!')
 
         return weights, lat_index, lon_index
+
+
+class Plot:
+
+    def point_mesh(point, mesh):
+        '''
+        Plot the location of a point along with a mesh.
+        '''
+
+        p_lat = point.lat_deg()
+        p_lon = point.lon_deg()
+
+        delta_deg = 0.5
+        m = Basemap(
+            llcrnrlon=p_lon-delta_deg, llcrnrlat=p_lat-delta_deg,
+            urcrnrlon=p_lon+delta_deg, urcrnrlat=p_lat+delta_deg
+        )
+
+        m.drawcoastlines()
+        m.drawmapboundary()
+
+        m.scatter(mesh.lon2d, mesh.lat2d, 30, marker='o', color='k')
+        m.scatter(p_lon, p_lat, 300, marker='*', color='r')
+
+        plt.show()
