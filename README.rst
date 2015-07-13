@@ -16,6 +16,7 @@ with a version of Anaconda 2.3.0 (Python 3.4.3).
 Some third-party modules are required:
 
 * numpy
+* matplotlib
 * click
 * progressbar2
 
