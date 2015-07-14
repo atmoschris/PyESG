@@ -40,6 +40,9 @@ class Public:
     aa, bb = -1, -1
     grids = []
 
+    first_check = True
+    first_search = True
+
 # ==============================================================================
 
 # ==============================================================================
@@ -134,12 +137,12 @@ class Arc(object):
         '''
 
         # delta_sigma = 2 * np.arcsin(
-        #     np.sqrt(
-        #         np.sin(self.delta_lat()/2.)**2 +
-        #         np.cos(self.p1.lat) *
-        #         np.cos(self.p2.lat) *
-        #         np.sin(self.delta_lon()/2)**2
-        #     )
+            # np.sqrt(
+                # np.sin(self.delta_lat()/2.)**2 +
+                # np.cos(self.p1.lat) *
+                # np.cos(self.p2.lat) *
+                # np.sin(self.delta_lon()/2)**2
+            # )
         # )
 
         delta_sigma = np.arctan2(
@@ -152,14 +155,15 @@ class Arc(object):
                 )**2
             ),
             np.sin(self.p1.lat)*np.sin(self.p2.lat) +
-            np.cos(self.p2.lat)*np.cos(self.p2.lat)*np.cos(self.delta_lon())
+            np.cos(self.p1.lat)*np.cos(self.p2.lat)*np.cos(self.delta_lon())
         )
 
         return delta_sigma
 
     def distance(self):
         '''
-        The difficulty is the calculation of delta_sigma()
+        The difficulty is the calculation of delta_sigma().
+        Unit: km.
 
         Reference: `<http://en.wikipedia.org/wiki/https://en.wikipedia.org/wiki/Great-circle_distance>`_
         '''
@@ -262,7 +266,9 @@ class Triangle(object):
         If we set a is the side p2-p3, b the side p3-p1, and c the side p1-p2.
         Then the return value A is the included angle betwen sides b and c.
 
-        Reference: `<https://en.wikipedia.org/wiki/Spherical_law_of_cosines>`_
+        References:
+            * `<https://en.wikipedia.org/wiki/Spherical_law_of_cosines>`_
+            * `<https://en.wikipedia.org/wiki/Haversine_formula>`_
         '''
         arc1 = Arc(self.p2, self.p3)
         arc2 = Arc(self.p3, self.p1)
@@ -287,6 +293,11 @@ class Triangle(object):
             (np.sin(a)*np.sin(b))
         )
 
+        if np.isnan(A) or np.isnan(B) or np.isnan(C):
+            print(arc1)
+            print(arc2)
+            print(arc3)
+
         return A, B, C
 
     def area(self):
@@ -299,10 +310,10 @@ class Triangle(object):
         Cosine rules are used to calculate the angles A, B, and C.
 
         References:
-        * `<http://mathworld.wolfram.com/SphericalTriangle.html>`_
-        * `<http://www.princeton.edu/~rvdb/WebGL/GirardThmProof.html>`_
-        * `<http://en.wikipedia.org/wiki/Spherical_trigonometry>`_
-        * `<http://mathforum.org/library/drmath/view/65316.html>`_
+            * `<http://mathworld.wolfram.com/SphericalTriangle.html>`_
+            * `<http://www.princeton.edu/~rvdb/WebGL/GirardThmProof.html>`_
+            * `<http://en.wikipedia.org/wiki/Spherical_trigonometry>`_
+            * `<http://mathforum.org/library/drmath/view/65316.html>`_
         ]
 
         '''
@@ -421,7 +432,8 @@ class Check:
                     pm = Point(mesh.lat2d[i, j], mesh.lon2d[i, j])
                     Public.grids.append((pm.lat, pm.lon))
 
-        # if (point.lat_deg(), point.lon_deg()) in grids:
+        Public.first_check = False
+
         if (point.lat, point.lon) in Public.grids:
             return True
         else:
@@ -526,8 +538,8 @@ class Check:
         Check if two great-circle arcs are intersected.
 
         Reference:
-        * `<http://www.mathworks.com/matlabcentral/newsreader/view_thread/276271>`_
-        * `<http://stackoverflow.com/questions/2954337/great-circle-rhumb-line-intersection>`_
+            * `<http://www.mathworks.com/matlabcentral/newsreader/view_thread/276271>`_
+            * `<http://stackoverflow.com/questions/2954337/great-circle-rhumb-line-intersection>`_
         '''
 
         vec11 = arc1.p1.vector()
@@ -769,24 +781,31 @@ class Search:
         quadr = Form.quadrangle(mesh, first_guess)
 
         if Check.is_inside_quadrangle(point, quadr):
+            print(first_guess)
             return quadr, first_guess
+
         else:
             # if the first_guess is wrong, then
             # 0. N = 2
             # 1. test lower_left, if wrong, then
             # 2. move right x N, move up x N, move left x N, move down x N,
-            # if still not found, then
+            #   if still not found, then
             # 3. N = N + 1, goto step 1
+
             N = 2
+
             while N <= 1e8:
+
                 guess = Move.lower_left(first_guess)
                 quadr = Form.quadrangle(mesh, guess)
+
                 if quadr is None:
                     guess = Move.upper_right(first_guess)
                     quadr = Form.quadrangle(mesh, guess)
 
                 if Check.is_inside_quadrangle(point, quadr):
-                    return quadr, first_guess
+                    print(guess)
+                    return quadr, guess
                 else:
                     # move right x N
                     for i in np.arange(N):
@@ -795,7 +814,8 @@ class Search:
                         if quadr is None:
                             continue
                         elif Check.is_inside_quadrangle(point, quadr):
-                            return quadr, first_guess
+                            print(guess)
+                            return quadr, guess
 
                     # move up x N
                     for i in np.arange(N):
@@ -804,7 +824,8 @@ class Search:
                         if quadr is None:
                             continue
                         elif Check.is_inside_quadrangle(point, quadr):
-                            return quadr, first_guess
+                            print(guess)
+                            return quadr, guess
 
                     # move left x N
                     for i in np.arange(N):
@@ -813,7 +834,8 @@ class Search:
                         if quadr is None:
                             continue
                         elif Check.is_inside_quadrangle(point, quadr):
-                            return quadr, first_guess
+                            print(guess)
+                            return quadr, guess
 
                     # move down x N
                     for i in np.arange(N):
@@ -822,7 +844,8 @@ class Search:
                         if quadr is None:
                             continue
                         elif Check.is_inside_quadrangle(point, quadr):
-                            return quadr, first_guess
+                            print(guess)
+                            return quadr, guess
 
                 N += 2
 
@@ -848,6 +871,8 @@ class Search:
                 first_guess=(Public.aa, Public.bb)
             )
 
+        Public.first_search = False
+
         tri1 = Triangle(quadr.p1, quadr.p2, quadr.p4)
         tri2 = Triangle(quadr.p2, quadr.p3, quadr.p4)
 
@@ -871,8 +896,7 @@ class Interp:
 
         Barycentric Interpolation: interpolation in a triangle.
 
-        [reference: https://classes.soe.ucsc.edu/cmps160/Fall10/
-        resources/barycentricInterpolation.pdf]
+        Reference: `https://classes.soe.ucsc.edu/cmps160/Fall10/resources/barycentricInterpolation.pdf>`_
         '''
         if not Check.is_inside_triangle(point, triangle):
             raise ValueError('The given point is not in the given triangle!')
@@ -967,8 +991,6 @@ class Interp:
 
         if method == 'quick':
 
-            first_time = True
-
             pbar = progressbar.ProgressBar()
             for i in pbar(np.arange(nlat_new)):
                 for j in np.arange(nlon_new):
@@ -993,9 +1015,8 @@ class Interp:
                             (p2_lat_index, p2_lon_index),
                             (p3_lat_index, p3_lon_index)
                         ) = Search.triangle(
-                            p_new, mesh_old, first_time=first_time
+                            p_new, mesh_old, first_time=Public.first_search
                         )
-                        first_time = False
 
                         weights[:, i, jm] = Interp.barycentric(p_new, tri)
                         lat_index[:, i, jm] = (
@@ -1007,16 +1028,17 @@ class Interp:
 
         elif method == 'standard':
 
-            first_time = True
-
-            for i in np.arange(nlat_new):
-                click.secho(
-                    'Processing the (' + str(i+1) + ' of ' +
-                    str(nlat_new) + ') row... ' +
-                    '{:3.0f}'.format((i+1)/nlat_new*100) + '%', fg='green'
-                )
-                pbar = progressbar.ProgressBar()
-                for j in pbar(np.arange(nlon_new)):
+            pbar = progressbar.ProgressBar()
+            for i in pbar(np.arange(nlat_new)):
+                for j in np.arange(nlon_new):
+            # for i in np.arange(nlat_new):
+            #     click.secho(
+            #         'Processing the (' + str(i+1) + ' of ' +
+            #         str(nlat_new) + ') row... ' +
+            #         '{:3.0f}'.format((i+1)/nlat_new*100) + '%', fg='green'
+            #     )
+            #     pbar = progressbar.ProgressBar()
+            #     for j in pbar(np.arange(nlon_new)):
 
                     # serpentine scanning
                     if i % 2 == 1:
@@ -1027,8 +1049,9 @@ class Interp:
                     p_new = Point(mesh_new.lat2d[i, jm], mesh_new.lon2d[i, jm])
                     p_old = Point(mesh_old.lat2d[i, jm], mesh_old.lon2d[i, jm])
 
-                    if Check.is_one_of_grids(p_new, mesh_old, first_time):
-                        first_time = False
+                    if Check.is_one_of_grids(
+                        p_new, mesh_old, first_time=Public.first_check
+                    ):
                         continue
 
                     else:
@@ -1038,7 +1061,9 @@ class Interp:
                             (p1_lat_index, p1_lon_index),
                             (p2_lat_index, p2_lon_index),
                             (p3_lat_index, p3_lon_index)
-                        ) = Search.triangle(p_new, mesh_old)
+                        ) = Search.triangle(
+                            p_new, mesh_old, first_time=Public.first_search
+                        )
 
                         weights[:, i, jm] = Interp.barycentric(p_new, tri)
                         lat_index[:, i, jm] = (
@@ -1130,6 +1155,23 @@ class Form:
 
 
 class Plot:
+
+    def points(*points):
+        '''
+        Plot points.
+        '''
+        p0 = points[0]
+        p_lon = p0.lon_deg()
+        p_lat = p0.lat_deg()
+
+        delta_deg = 0.5
+        m = Basemap(
+            llcrnrlon=p_lon-delta_deg, llcrnrlat=p_lat-delta_deg,
+            urcrnrlon=p_lon+delta_deg, urcrnrlat=p_lat+delta_deg
+        )
+
+        for pt in points:
+            m.scatter(pt.lon_deg(), pt.lat_deg())
 
     def point_mesh(point, mesh, ms_point=300, ms_mesh=30):
         '''
