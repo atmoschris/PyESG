@@ -262,6 +262,8 @@ class Triangle(object):
 
     def angles(self):
         '''
+        TODO: debug
+
         Calculate the included angle between two sides on the earth.
         If we set a is the side p2-p3, b the side p3-p1, and c the side p1-p2.
         Then the return value A is the included angle betwen sides b and c.
@@ -274,24 +276,28 @@ class Triangle(object):
         arc2 = Arc(self.p3, self.p1)
         arc3 = Arc(self.p1, self.p2)
 
-        a = arc1.rad()
-        b = arc2.rad()
-        c = arc3.rad()
+        # a = arc1.rad()
+        # b = arc2.rad()
+        # c = arc3.rad()
 
-        A = np.arccos(
-            (np.cos(a) - np.cos(b)*np.cos(c)) /
-            (np.sin(b)*np.sin(c))
-        )
+        # A = np.arccos(
+        #     (np.cos(a) - np.cos(b)*np.cos(c)) /
+        #     (np.sin(b)*np.sin(c))
+        # )
 
-        B = np.arccos(
-            (np.cos(b) - np.cos(a)*np.cos(c)) /
-            (np.sin(a)*np.sin(c))
-        )
+        # B = np.arccos(
+        #     (np.cos(b) - np.cos(a)*np.cos(c)) /
+        #     (np.sin(a)*np.sin(c))
+        # )
 
-        C = np.arccos(
-            (np.cos(c) - np.cos(a)*np.cos(b)) /
-            (np.sin(a)*np.sin(b))
-        )
+        # C = np.arccos(
+        #     (np.cos(c) - np.cos(a)*np.cos(b)) /
+        #     (np.sin(a)*np.sin(b))
+        # )
+
+        A = arc1.rad()
+        B = arc2.rad()
+        C = arc3.rad()
 
         if np.isnan(A) or np.isnan(B) or np.isnan(C):
             print(arc1)
@@ -806,55 +812,56 @@ class Search:
                 # print(guess)
                 quadr = Form.quadrangle(mesh, guess)
 
-                if Check.is_inside_quadrangle(point, quadr):
+                if quadr is not None:
 
-                    return quadr, guess
+                    if Check.is_inside_quadrangle(point, quadr):
 
-                else:
-                    # start cycling
+                        return quadr, guess
 
-                    # move right x N
-                    for i in np.arange(N):
-                        guess = Move.right(guess)
+                # start cycling
+
+                # move right x N
+                for i in np.arange(N):
+                    guess = Move.right(guess)
+                    # print(guess)
+                    quadr = Form.quadrangle(mesh, guess)
+                    if quadr is None:
+                        continue
+                    elif Check.is_inside_quadrangle(point, quadr):
                         # print(guess)
-                        quadr = Form.quadrangle(mesh, guess)
-                        if quadr is None:
-                            continue
-                        elif Check.is_inside_quadrangle(point, quadr):
-                            print(guess)
-                            return quadr, guess
+                        return quadr, guess
 
-                    # move up x N
-                    for i in np.arange(N):
-                        guess = Move.up(guess)
-                        # print(guess)
-                        quadr = Form.quadrangle(mesh, guess)
-                        if quadr is None:
-                            continue
-                        elif Check.is_inside_quadrangle(point, quadr):
-                            return quadr, guess
+                # move up x N
+                for i in np.arange(N):
+                    guess = Move.up(guess)
+                    # print(guess)
+                    quadr = Form.quadrangle(mesh, guess)
+                    if quadr is None:
+                        continue
+                    elif Check.is_inside_quadrangle(point, quadr):
+                        return quadr, guess
 
-                    # move left x N
-                    for i in np.arange(N):
-                        guess = Move.left(guess)
-                        # print(guess)
-                        quadr = Form.quadrangle(mesh, guess)
-                        if quadr is None:
-                            continue
-                        elif Check.is_inside_quadrangle(point, quadr):
-                            return quadr, guess
+                # move left x N
+                for i in np.arange(N):
+                    guess = Move.left(guess)
+                    # print(guess)
+                    quadr = Form.quadrangle(mesh, guess)
+                    if quadr is None:
+                        continue
+                    elif Check.is_inside_quadrangle(point, quadr):
+                        return quadr, guess
 
-                    # move down x N
-                    for i in np.arange(N):
-                        guess = Move.down(guess)
-                        # print(guess)
-                        quadr = Form.quadrangle(mesh, guess)
-                        if quadr is None:
-                            continue
-                        elif Check.is_inside_quadrangle(point, quadr):
-                            return quadr, guess
+                # move down x N
+                for i in np.arange(N):
+                    guess = Move.down(guess)
+                    # print(guess)
+                    quadr = Form.quadrangle(mesh, guess)
+                    if quadr is None:
+                        continue
+                    elif Check.is_inside_quadrangle(point, quadr):
+                        return quadr, guess
 
-                    last_guess = guess
+                last_guess = guess
 
         if quadr is None:
             print('N:', N)
