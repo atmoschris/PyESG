@@ -781,7 +781,7 @@ class Search:
         quadr = Form.quadrangle(mesh, first_guess)
 
         if Check.is_inside_quadrangle(point, quadr):
-            print(first_guess)
+            # print(first_guess)
             return quadr, first_guess
 
         else:
@@ -790,26 +790,33 @@ class Search:
             # 1. test lower_left, if wrong, then
             # 2. move right x N, move up x N, move left x N, move down x N,
             #   if still not found, then
-            # 3. N = N + 1, goto step 1
+            # 3. N = N + 2, goto step 1
 
-            N = 2
+            N = 0
+            last_guess = first_guess
 
             while N <= 1e8:
 
-                guess = Move.lower_left(first_guess)
+                N += 2
+                # print('N:', N)
+                # print('last_guess:', last_guess)
+
+                # first check lower left
+                guess = Move.lower_left(last_guess)
+                # print(guess)
                 quadr = Form.quadrangle(mesh, guess)
 
-                if quadr is None:
-                    guess = Move.upper_right(first_guess)
-                    quadr = Form.quadrangle(mesh, guess)
-
                 if Check.is_inside_quadrangle(point, quadr):
-                    print(guess)
+
                     return quadr, guess
+
                 else:
+                    # start cycling
+
                     # move right x N
                     for i in np.arange(N):
                         guess = Move.right(guess)
+                        # print(guess)
                         quadr = Form.quadrangle(mesh, guess)
                         if quadr is None:
                             continue
@@ -820,34 +827,34 @@ class Search:
                     # move up x N
                     for i in np.arange(N):
                         guess = Move.up(guess)
+                        # print(guess)
                         quadr = Form.quadrangle(mesh, guess)
                         if quadr is None:
                             continue
                         elif Check.is_inside_quadrangle(point, quadr):
-                            print(guess)
                             return quadr, guess
 
                     # move left x N
                     for i in np.arange(N):
                         guess = Move.left(guess)
+                        # print(guess)
                         quadr = Form.quadrangle(mesh, guess)
                         if quadr is None:
                             continue
                         elif Check.is_inside_quadrangle(point, quadr):
-                            print(guess)
                             return quadr, guess
 
                     # move down x N
                     for i in np.arange(N):
                         guess = Move.down(guess)
+                        # print(guess)
                         quadr = Form.quadrangle(mesh, guess)
                         if quadr is None:
                             continue
                         elif Check.is_inside_quadrangle(point, quadr):
-                            print(guess)
                             return quadr, guess
 
-                N += 2
+                    last_guess = guess
 
         if quadr is None:
             print('N:', N)
@@ -870,14 +877,17 @@ class Search:
                 point, mesh,
                 first_guess=(Public.aa, Public.bb)
             )
+            Public.aa, Public.bb = aa, bb
 
-        Public.first_search = False
+        # print(point, 'in', Form.quadrangle(mesh, (Public.aa, Public.bb)))
 
         tri1 = Triangle(quadr.p1, quadr.p2, quadr.p4)
         tri2 = Triangle(quadr.p2, quadr.p3, quadr.p4)
 
         cc = aa + 1
         dd = bb + 1
+
+        Public.first_search = False
 
         if Check.is_inside_triangle(point, tri1):
             return tri1, (aa, bb), (aa, dd), (cc, bb)
@@ -1031,14 +1041,6 @@ class Interp:
             pbar = progressbar.ProgressBar()
             for i in pbar(np.arange(nlat_new)):
                 for j in np.arange(nlon_new):
-            # for i in np.arange(nlat_new):
-            #     click.secho(
-            #         'Processing the (' + str(i+1) + ' of ' +
-            #         str(nlat_new) + ') row... ' +
-            #         '{:3.0f}'.format((i+1)/nlat_new*100) + '%', fg='green'
-            #     )
-            #     pbar = progressbar.ProgressBar()
-            #     for j in pbar(np.arange(nlon_new)):
 
                     # serpentine scanning
                     if i % 2 == 1:
@@ -1191,6 +1193,33 @@ class Plot:
         m.drawmapboundary()
 
         m.scatter(mesh.lon2d, mesh.lat2d, ms_mesh, marker='o', color='k')
+        m.scatter(p_lon, p_lat, ms_point, marker='*', color='r')
+
+        plt.show()
+
+    def point_quadrangle(point, quadr, ms_point=300, ms_quadr=30, delta_deg=.5):
+        '''
+        Plot the location of a point along with a mesh.
+        '''
+
+        p_lat, p_lon = point.lat_deg(), point.lon_deg()
+
+        p1_lat, p1_lon = quadr.p1.lat_deg(), quadr.p1.lon_deg()
+        p2_lat, p2_lon = quadr.p2.lat_deg(), quadr.p2.lon_deg()
+        p3_lat, p3_lon = quadr.p3.lat_deg(), quadr.p3.lon_deg()
+        p4_lat, p4_lon = quadr.p4.lat_deg(), quadr.p4.lon_deg()
+        quadr_lat = np.array([p1_lat, p2_lat, p3_lat, p4_lat])
+        quadr_lon = np.array([p1_lon, p2_lon, p3_lon, p4_lon])
+
+        m = Basemap(
+            llcrnrlon=p_lon-delta_deg, llcrnrlat=p_lat-delta_deg,
+            urcrnrlon=p_lon+delta_deg, urcrnrlat=p_lat+delta_deg
+        )
+
+        m.drawcoastlines()
+        m.drawmapboundary()
+
+        m.scatter(quadr_lon, quadr_lat, ms_quadr, marker='o', color='k')
         m.scatter(p_lon, p_lat, ms_point, marker='*', color='r')
 
         plt.show()
