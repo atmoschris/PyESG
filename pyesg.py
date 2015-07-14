@@ -13,6 +13,8 @@ from mpl_toolkits.basemap import Basemap
 import progressbar
 import click
 
+from IPython import embed
+
 # ==============================================================================
 # Constants
 # ------------------------------------------------------------------------------
@@ -27,6 +29,22 @@ class Earth:
 class System:
 
     undef = -99999.
+
+# ==============================================================================
+
+# ==============================================================================
+# Mathematics
+# ------------------------------------------------------------------------------
+
+
+class Math:
+
+    def haversine(theta):
+
+        hsin = (1 - np.cos(theta))/2.
+
+        return hsin
+
 
 # ==============================================================================
 
@@ -272,9 +290,9 @@ class Triangle(object):
             * `<https://en.wikipedia.org/wiki/Spherical_law_of_cosines>`_
             * `<https://en.wikipedia.org/wiki/Haversine_formula>`_
         '''
-        arc1 = Arc(self.p2, self.p3)
-        arc2 = Arc(self.p3, self.p1)
-        arc3 = Arc(self.p1, self.p2)
+        # arc1 = Arc(self.p2, self.p3)
+        # arc2 = Arc(self.p3, self.p1)
+        # arc3 = Arc(self.p1, self.p2)
 
         # a = arc1.rad()
         # b = arc2.rad()
@@ -295,14 +313,35 @@ class Triangle(object):
         #     (np.sin(a)*np.sin(b))
         # )
 
-        A = arc1.rad()
-        B = arc2.rad()
-        C = arc3.rad()
+        w = self.p1.vector()  # A
+        v = self.p2.vector()  # B
+        u = self.p3.vector()  # C
+
+        ta = u - np.dot(w, np.dot(w, u))
+        tb = v - np.dot(w, np.dot(w, v))
+        A = np.arccos(
+            np.dot(ta/np.linalg.norm(ta), tb/np.linalg.norm(tb))
+        )
+
+        ta = u - np.dot(v, np.dot(v, u))
+        tb = w - np.dot(v, np.dot(v, w))
+        B = np.arccos(
+            np.dot(ta/np.linalg.norm(ta), tb/np.linalg.norm(tb))
+        )
+
+        ta = v - np.dot(u, np.dot(u, v))
+        tb = w - np.dot(u, np.dot(u, w))
+        C = np.arccos(
+            np.dot(ta/np.linalg.norm(ta), tb/np.linalg.norm(tb))
+        )
 
         if np.isnan(A) or np.isnan(B) or np.isnan(C):
-            print(arc1)
-            print(arc2)
-            print(arc3)
+            print('WRONG:', A, B, C)
+            print('%.20f %.20f' % (self.p1.lat_deg(), self.p1.lon_deg()))
+            print('%.20f %.20f' % (self.p2.lat_deg(), self.p2.lon_deg()))
+            print('%.20f %.20f' % (self.p3.lat_deg(), self.p3.lon_deg()))
+            embed()
+            raise ValueError('WRONG arccos()!!!')
 
         return A, B, C
 
@@ -1165,7 +1204,7 @@ class Form:
 
 class Plot:
 
-    def points(*points):
+    def points(*points, delta_deg=0.5, ms_point=300):
         '''
         Plot points.
         '''
@@ -1173,16 +1212,15 @@ class Plot:
         p_lon = p0.lon_deg()
         p_lat = p0.lat_deg()
 
-        delta_deg = 0.5
         m = Basemap(
             llcrnrlon=p_lon-delta_deg, llcrnrlat=p_lat-delta_deg,
             urcrnrlon=p_lon+delta_deg, urcrnrlat=p_lat+delta_deg
         )
 
         for pt in points:
-            m.scatter(pt.lon_deg(), pt.lat_deg())
+            m.scatter(pt.lon_deg(), pt.lat_deg(), ms_point)
 
-    def point_mesh(point, mesh, ms_point=300, ms_mesh=30):
+    def point_mesh(point, mesh, delta_deg=0.5, ms_point=300, ms_mesh=30):
         '''
         Plot the location of a point along with a mesh.
         '''
@@ -1190,7 +1228,6 @@ class Plot:
         p_lat = point.lat_deg()
         p_lon = point.lon_deg()
 
-        delta_deg = 0.5
         m = Basemap(
             llcrnrlon=p_lon-delta_deg, llcrnrlat=p_lat-delta_deg,
             urcrnrlon=p_lon+delta_deg, urcrnrlat=p_lat+delta_deg
@@ -1204,7 +1241,7 @@ class Plot:
 
         plt.show()
 
-    def point_quadrangle(point, quadr, ms_point=300, ms_quadr=30, delta_deg=.5):
+    def point_quadrangle(point, quadr, delta_deg=.5, ms_point=300, ms_quadr=30):
         '''
         Plot the location of a point along with a mesh.
         '''
