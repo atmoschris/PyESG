@@ -819,8 +819,6 @@ class Search:
         point, mesh, debug_mode=True, first_guess=(0, 0)
     ):
         '''
-        NOTE: DEBUG!!!
-
         [optimal version 2]
         Search the quadrangle which the point located in.
         In version 2, first_guess is given to test first, if not found,
@@ -857,9 +855,7 @@ class Search:
                 quadr = Form.quadrangle(mesh, guess)
 
                 if quadr is not None:
-
                     if Check.is_inside_quadrangle(point, quadr):
-
                         return quadr, guess
 
                 # start cycling
@@ -921,8 +917,13 @@ class Search:
         '''
 
         if first_time:
-            quadr, (aa, bb) = Search.quadrangle_bm(point, mesh)
+            #  quadr, (aa, bb) = Search.quadrangle_bm(point, mesh)
             #  quadr, (aa, bb) = Search.quadrangle_o1(point, mesh)
+            nlat = mesh.lat2d.shape[0]
+            nlon = mesh.lat2d.shape[1]
+            mid_lat = nlat//2
+            mid_lon = nlon//2
+            quadr, (aa, bb) = Search.quadrangle_o2(point, mesh, first_guess=(mid_lat, mid_lon))
             Public.aa, Public.bb = aa, bb
         else:
             quadr, (aa, bb) = Search.quadrangle_o2(
@@ -1187,16 +1188,23 @@ class Form:
         Form a quadrangle in the given mesh with the given lower left corner.
         '''
         aa, bb = ll_corner
+        cc = aa + 1
+        dd = bb + 1
+
+        nlat = mesh.lat2d.shape[0]
+        nlon = mesh.lat2d.shape[1]
 
         if aa < 0 or bb < 0:
 
-            click.secho('The ll_corner does not exists!', fg='red')
+            click.secho('The quadrangle (ll_corner) does not exists!', fg='red')
+            quadr = None
+
+        elif cc > nlat or dd > nlon:
+
+            click.secho('The quadrangle (rr_corner) does not exists!', fg='red')
             quadr = None
 
         else:
-
-            cc = aa + 1
-            dd = bb + 1
 
             p11 = Point(mesh.lat2d[aa, bb], mesh.lon2d[aa, bb])
             p12 = Point(mesh.lat2d[aa, dd], mesh.lon2d[aa, dd])
@@ -1226,24 +1234,43 @@ class Plot:
         for pt in points:
             m.scatter(pt.lon_deg(), pt.lat_deg(), ms_point)
 
-    def point_mesh(point, mesh, delta_deg=0.5, ms_point=300, ms_mesh=30):
+    def quadrangle(quadr, delta_deg=0.5, ms_point=300):
         '''
-        Plot the location of a point along with a mesh.
+        Plot points.
         '''
-
-        p_lat = point.lat_deg()
-        p_lon = point.lon_deg()
+        p0 = points[0]
+        p_lon = p0.lon_deg()
+        p_lat = p0.lat_deg()
 
         m = Basemap(
             llcrnrlon=p_lon-delta_deg, llcrnrlat=p_lat-delta_deg,
             urcrnrlon=p_lon+delta_deg, urcrnrlat=p_lat+delta_deg
         )
 
+        for pt in points:
+            m.scatter(pt.lon_deg(), pt.lat_deg(), ms_point)
+
+    def quadrangle(quadr, delta_deg=.5, ms_point=300, ms_quadr=30):
+        '''
+        Plot the location of a point along with a mesh.
+        '''
+
+        p1_lat, p1_lon = quadr.p1.lat_deg(), quadr.p1.lon_deg()
+        p2_lat, p2_lon = quadr.p2.lat_deg(), quadr.p2.lon_deg()
+        p3_lat, p3_lon = quadr.p3.lat_deg(), quadr.p3.lon_deg()
+        p4_lat, p4_lon = quadr.p4.lat_deg(), quadr.p4.lon_deg()
+        quadr_lat = np.array([p1_lat, p2_lat, p3_lat, p4_lat])
+        quadr_lon = np.array([p1_lon, p2_lon, p3_lon, p4_lon])
+
+        m = Basemap(
+            llcrnrlon=p1_lon-delta_deg, llcrnrlat=p1_lat-delta_deg,
+            urcrnrlon=p1_lon+delta_deg, urcrnrlat=p1_lat+delta_deg
+        )
+
         m.drawcoastlines()
         m.drawmapboundary()
 
-        m.scatter(mesh.lon2d, mesh.lat2d, ms_mesh, marker='o', color='k')
-        m.scatter(p_lon, p_lat, ms_point, marker='*', color='r')
+        m.scatter(quadr_lon, quadr_lat, ms_quadr, marker='o', color='k')
 
         plt.show()
 
