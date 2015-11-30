@@ -280,8 +280,6 @@ class Triangle(object):
 
     def angles(self):
         '''
-        TODO: debug
-
         Calculate the included angle between two sides on the earth.
         If we set a is the side p2-p3, b the side p3-p1, and c the side p1-p2.
         Then the return value A is the included angle betwen sides b and c.
@@ -723,7 +721,8 @@ class Search:
         [bench mark algorithm]
         Search the quadrangle which the point located in with the hardest way.
         '''
-        quadr = None
+        aa = None
+        bb = None
 
         if Check.is_one_of_grids(point, mesh):
             raise ValueError('The given point is one of the mesh grids!')
@@ -743,15 +742,19 @@ class Search:
                     aa, bb = i, j
                     return quadr, (aa, bb)
 
-        if quadr is None:
+        if aa or bb is None:
+            print('%.9f %.9f' % (point.lat_deg(), point.lon_deg()))
             raise ValueError('Quadrangle searching failed!')
 
     def quadrangle_o1(point, mesh, debug_mode=True):
         '''
+        NOTE: DEBUG!!!
+
         [optimal version 1 based on the bench mark algorithm]
         Search the quadrangle which the point located in.
         '''
-        quadr = None
+        aa = None
+        bb = None
 
         if Check.is_one_of_grids(point, mesh):
             raise ValueError('The given point is one of the mesh grids!')
@@ -805,7 +808,7 @@ class Search:
                     aa, bb = i+i_min, j+j_min
                     return quadr, (aa, bb)
 
-        if quadr is None:
+        if aa or bb is None:
             print('%.9f %.9f' % (point.lat_deg(), point.lon_deg()))
             if debug_mode:
                 np.savetxt('mesh_lat2d.dat', mesh.lat2d, '%.9f')
@@ -816,6 +819,8 @@ class Search:
         point, mesh, debug_mode=True, first_guess=(0, 0)
     ):
         '''
+        NOTE: DEBUG!!!
+
         [optimal version 2]
         Search the quadrangle which the point located in.
         In version 2, first_guess is given to test first, if not found,
@@ -916,7 +921,8 @@ class Search:
         '''
 
         if first_time:
-            quadr, (aa, bb) = Search.quadrangle_o1(point, mesh)
+            quadr, (aa, bb) = Search.quadrangle_bm(point, mesh)
+            #  quadr, (aa, bb) = Search.quadrangle_o1(point, mesh)
             Public.aa, Public.bb = aa, bb
         else:
             quadr, (aa, bb) = Search.quadrangle_o2(
@@ -1264,6 +1270,32 @@ class Plot:
         m.drawmapboundary()
 
         m.scatter(quadr_lon, quadr_lat, ms_quadr, marker='o', color='k')
+        m.scatter(p_lon, p_lat, ms_point, marker='*', color='r')
+
+        plt.show()
+
+    def point_triangle(point, tri, delta_deg=.5, ms_point=300, ms_quadr=30):
+        '''
+        Plot the location of a point along with a mesh.
+        '''
+
+        p_lat, p_lon = point.lat_deg(), point.lon_deg()
+
+        p1_lat, p1_lon = tri.p1.lat_deg(), tri.p1.lon_deg()
+        p2_lat, p2_lon = tri.p2.lat_deg(), tri.p2.lon_deg()
+        p3_lat, p3_lon = tri.p3.lat_deg(), tri.p3.lon_deg()
+        tri_lat = np.array([p1_lat, p2_lat, p3_lat])
+        tri_lon = np.array([p1_lon, p2_lon, p3_lon])
+
+        m = Basemap(
+            llcrnrlon=p_lon-delta_deg, llcrnrlat=p_lat-delta_deg,
+            urcrnrlon=p_lon+delta_deg, urcrnrlat=p_lat+delta_deg
+        )
+
+        m.drawcoastlines()
+        m.drawmapboundary()
+
+        m.scatter(tri_lon, tri_lat, ms_quadr, marker='o', color='k')
         m.scatter(p_lon, p_lat, ms_point, marker='*', color='r')
 
         plt.show()
