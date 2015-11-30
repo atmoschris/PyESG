@@ -288,28 +288,28 @@ class Triangle(object):
             * `<https://en.wikipedia.org/wiki/Spherical_law_of_cosines>`_
             * `<https://en.wikipedia.org/wiki/Haversine_formula>`_
         '''
-        # arc1 = Arc(self.p2, self.p3)
-        # arc2 = Arc(self.p3, self.p1)
-        # arc3 = Arc(self.p1, self.p2)
+        #  arc1 = Arc(self.p2, self.p3)
+        #  arc2 = Arc(self.p3, self.p1)
+        #  arc3 = Arc(self.p1, self.p2)
 
-        # a = arc1.rad()
-        # b = arc2.rad()
-        # c = arc3.rad()
+        #  a = arc1.rad()
+        #  b = arc2.rad()
+        #  c = arc3.rad()
 
-        # A = np.arccos(
+        #  A = np.arccos(
         #     (np.cos(a) - np.cos(b)*np.cos(c)) /
         #     (np.sin(b)*np.sin(c))
-        # )
+        #  )
 
-        # B = np.arccos(
+        #  B = np.arccos(
         #     (np.cos(b) - np.cos(a)*np.cos(c)) /
         #     (np.sin(a)*np.sin(c))
-        # )
+        #  )
 
-        # C = np.arccos(
+        #  C = np.arccos(
         #     (np.cos(c) - np.cos(a)*np.cos(b)) /
         #     (np.sin(a)*np.sin(b))
-        # )
+        #  )
 
         w = self.p1.vector()  # A
         v = self.p2.vector()  # B
@@ -365,6 +365,9 @@ class Triangle(object):
         E = A + B + C - np.pi
 
         area = Earth.radius**2 * E
+        if area < 0:
+            #  raise ValueError('Negative area of triangle!!!')
+            area = 0
 
         return area
 
@@ -1008,6 +1011,13 @@ class Interp:
             A2 = tri2.area()
             A3 = tri3.area()
 
+        if A1 < 0:
+            raise ValueError('A1 < 0')
+        if A2 < 0:
+            raise ValueError('A2 < 0')
+        if A3 < 0:
+            raise ValueError('A3 < 0')
+
         A = A1 + A2 + A3
         # A_tri = triangle.area()
 
@@ -1018,9 +1028,34 @@ class Interp:
         #               'The triangle is too big for barycentric interpolation!'
         #           )
 
-        weight1 = A1 / A
-        weight2 = A2 / A
-        weight3 = A3 / A
+        if A <= 0:
+            d1 = Arc(point, triangle.p1).distance()
+            d2 = Arc(point, triangle.p2).distance()
+            d3 = Arc(point, triangle.p3).distance()
+            dd = d1 + d2 + d3
+            weight1 = (dd-d1) / dd / 2
+            weight2 = (dd-d2) / dd / 2
+            weight3 = (dd-d3) / dd / 2
+            #  if d1 > d2 and d1 > d3:
+            #      weight1 = 1
+            #      weight2 = 0
+            #      weight3 = 0
+            #  elif d2 > d1 and d2 > d3:
+            #      weight1 = 0
+            #      weight2 = 1
+            #      weight3 = 0
+            #  elif d3 > d1 and d3 > d2:
+            #      weight1 = 0
+            #      weight2 = 0
+            #      weight3 = 1
+        else:
+            weight1 = A1 / A
+            weight2 = A2 / A
+            weight3 = A3 / A
+
+        if np.abs(weight1 + weight2 + weight3 - 1) > 0.1:
+            print(weight1 + weight2 + weight3)
+            raise ValueError('Sum of weights is not 1!!!')
 
         return weight1, weight2, weight3
 
@@ -1298,6 +1333,29 @@ class Plot:
 
         m.scatter(quadr_lon, quadr_lat, ms_quadr, marker='o', color='k')
         m.scatter(p_lon, p_lat, ms_point, marker='*', color='r')
+
+        plt.show()
+
+    def triangle(tri, delta_deg=.5, ms_point=300, ms_quadr=30):
+        '''
+        Plot the location of a point along with a mesh.
+        '''
+
+        p1_lat, p1_lon = tri.p1.lat_deg(), tri.p1.lon_deg()
+        p2_lat, p2_lon = tri.p2.lat_deg(), tri.p2.lon_deg()
+        p3_lat, p3_lon = tri.p3.lat_deg(), tri.p3.lon_deg()
+        tri_lat = np.array([p1_lat, p2_lat, p3_lat])
+        tri_lon = np.array([p1_lon, p2_lon, p3_lon])
+
+        m = Basemap(
+            llcrnrlon=p1_lon-delta_deg, llcrnrlat=p1_lat-delta_deg,
+            urcrnrlon=p1_lon+delta_deg, urcrnrlat=p1_lat+delta_deg
+        )
+
+        m.drawcoastlines()
+        m.drawmapboundary()
+
+        m.scatter(tri_lon, tri_lat, ms_quadr, marker='o', color='k')
 
         plt.show()
 
