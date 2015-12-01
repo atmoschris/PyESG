@@ -86,7 +86,7 @@ class Point(object):
         lat_deg = np.degrees(self.lat)
         lon_deg = np.degrees(self.lon)
 
-        return '(' + str(lat_deg) + ', ' + str(lon_deg) + ')'
+        return '(' + str(np.double(lat_deg)) + ', ' + str(np.double(lon_deg)) + ')'
 
     def lat_deg(self):
         ''' radians -> degree
@@ -288,29 +288,6 @@ class Triangle(object):
             * `<https://en.wikipedia.org/wiki/Spherical_law_of_cosines>`_
             * `<https://en.wikipedia.org/wiki/Haversine_formula>`_
         '''
-        #  arc1 = Arc(self.p2, self.p3)
-        #  arc2 = Arc(self.p3, self.p1)
-        #  arc3 = Arc(self.p1, self.p2)
-
-        #  a = arc1.rad()
-        #  b = arc2.rad()
-        #  c = arc3.rad()
-
-        #  A = np.arccos(
-        #     (np.cos(a) - np.cos(b)*np.cos(c)) /
-        #     (np.sin(b)*np.sin(c))
-        #  )
-
-        #  B = np.arccos(
-        #     (np.cos(b) - np.cos(a)*np.cos(c)) /
-        #     (np.sin(a)*np.sin(c))
-        #  )
-
-        #  C = np.arccos(
-        #     (np.cos(c) - np.cos(a)*np.cos(b)) /
-        #     (np.sin(a)*np.sin(b))
-        #  )
-
         w = self.p1.vector()  # A
         v = self.p2.vector()  # B
         u = self.p3.vector()  # C
@@ -361,13 +338,34 @@ class Triangle(object):
 
         '''
         A, B, C = self.angles()
-
         E = A + B + C - np.pi
-
         area = Earth.radius**2 * E
+
+        #  j = 20
+        #  while E < 0:
+        #      p1_lat = round(self.p1.lat_deg(), j)
+        #      p1_lon = round(self.p1.lon_deg(), j)
+        #      p2_lat = round(self.p2.lat_deg(), j)
+        #      p2_lon = round(self.p2.lon_deg(), j)
+        #      p3_lat = round(self.p3.lat_deg(), j)
+        #      p3_lon = round(self.p3.lon_deg(), j)
+        #      pt1 = Point(p1_lat, p1_lon)
+        #      pt2 = Point(p2_lat, p2_lon)
+        #      pt3 = Point(p3_lat, p3_lon)
+        #      tri = Triangle(pt1, pt2, pt3)
+
+        #      A, B, C = self.angles()
+        #      E = A + B + C - np.pi
+        #      j -= 1
+        #      if j == 3:
+        #          area = 0
+        #          #  raise ValueError('Negative area of triangle!!!')
+
         if area < 0:
-            #  raise ValueError('Negative area of triangle!!!')
-            area = 0
+            if Check.is_close_enough(E, 0, e=1e-3):
+                area = 0
+            else:
+                raise ValueError('Negative area of triangle!!!')
 
         return area
 
@@ -382,6 +380,13 @@ class Quadrangle(object):
     def __init__(self, p1, p2, p3, p4):
         if not Check.is_rotative(p1, p2, p3, p4):
             raise ValueError('The given four points are in wrong sequence!')
+
+        arc1 = Arc(p1, p2)
+        arc2 = Arc(p2, p3)
+        arc3 = Arc(p3, p4)
+        arc4 = Arc(p4, p1)
+        if Check.is_same_great_circle(arc1, arc2) or Check.is_same_great_circle(arc1, arc3) or Check.is_same_great_circle(arc1, arc4) or Check.is_same_great_circle(arc2, arc3) or Check.is_same_great_circle(arc3, arc4):
+            raise ValueError('Three of the given four points are on the same great circle!')
 
         self.p1 = p1
         self.p2 = p2
@@ -564,7 +569,6 @@ class Check:
             N1 = np.cross(A, P)
             N2 = np.cross(B, P)
             T = np.dot(N1, N2)
-            # print('[Debug] T:', T)
 
             if method == 'inner':
                 if T <= 0:
@@ -749,80 +753,11 @@ class Search:
             print('%.9f %.9f' % (point.lat_deg(), point.lon_deg()))
             raise ValueError('Quadrangle searching failed!')
 
-    def quadrangle_o1(point, mesh, debug_mode=True):
-        '''
-        NOTE: DEBUG!!!
-
-        [optimal version 1 based on the bench mark algorithm]
-        Search the quadrangle which the point located in.
-        '''
-        aa = None
-        bb = None
-
-        if Check.is_one_of_grids(point, mesh):
-            raise ValueError('The given point is one of the mesh grids!')
-
-        nlat = mesh.lat2d.shape[0]
-        nlon = mesh.lat2d.shape[1]
-
-        i_min = 1e8
-        i_max = -1e8
-        for i in np.arange(nlat-1):
-            if (
-                point.lat_deg() >= np.min(mesh.lat2d[i, :]) and
-                point.lat_deg() <= np.max(mesh.lat2d[i+1, :])
-            ):
-                if i < i_min:
-                    i_min = i
-
-                if i > i_max:
-                    i_max = i
-
-        j_min = 1e8
-        j_max = -1e8
-        for j in np.arange(nlon-1):
-            if (
-                point.lon_deg() >= np.min(mesh.lon2d[:, j]) and
-                point.lon_deg() <= np.max(mesh.lon2d[:, j+1])
-            ):
-                if j < j_min:
-                    j_min = j
-
-                if j > j_max:
-                    j_max = j
-
-        smesh = Mesh(
-            mesh.lat2d[i_min:i_max+1, j_min:j_max+1],
-            mesh.lon2d[i_min:i_max+1, j_min:j_max+1]
-        )
-
-        nlat_small = smesh.lat2d.shape[0]
-        nlon_small = smesh.lat2d.shape[1]
-
-        for i in np.arange(nlat_small-1):
-            for j in np.arange(nlon_small-1):
-                pm11 = Point(smesh.lat2d[i, j], smesh.lon2d[i, j])
-                pm12 = Point(smesh.lat2d[i, j+1], smesh.lon2d[i, j+1])
-                pm21 = Point(smesh.lat2d[i+1, j], smesh.lon2d[i+1, j])
-                pm22 = Point(smesh.lat2d[i+1, j+1], smesh.lon2d[i+1, j+1])
-                quadr = Quadrangle(pm11, pm12, pm22, pm21)
-
-                if Check.is_inside_quadrangle(point, quadr):
-                    aa, bb = i+i_min, j+j_min
-                    return quadr, (aa, bb)
-
-        if aa or bb is None:
-            print('%.9f %.9f' % (point.lat_deg(), point.lon_deg()))
-            if debug_mode:
-                np.savetxt('mesh_lat2d.dat', mesh.lat2d, '%.9f')
-                np.savetxt('mesh_lon2d.dat', mesh.lon2d, '%.9f')
-            raise ValueError('Quadrangle searching failed!')
-
-    def quadrangle_o2(
-        point, mesh, debug_mode=True, first_guess=(0, 0)
+    def quadrangle_o1(
+        point, mesh, debug_mode=False, first_guess=(0, 0)
     ):
         '''
-        [optimal version 2]
+        [optimal version 1]
         Search the quadrangle which the point located in.
         In version 2, first_guess is given to test first, if not found,
         then searching will be continued around the first guess quadrangle.
@@ -921,21 +856,20 @@ class Search:
 
         if first_time:
             #  quadr, (aa, bb) = Search.quadrangle_bm(point, mesh)
-            #  quadr, (aa, bb) = Search.quadrangle_o1(point, mesh)
             nlat = mesh.lat2d.shape[0]
             nlon = mesh.lat2d.shape[1]
             mid_lat = nlat//2
             mid_lon = nlon//2
-            quadr, (aa, bb) = Search.quadrangle_o2(point, mesh, first_guess=(mid_lat, mid_lon))
+            quadr, (aa, bb) = Search.quadrangle_o1(point, mesh, first_guess=(mid_lat, mid_lon))
             Public.aa, Public.bb = aa, bb
         else:
-            quadr, (aa, bb) = Search.quadrangle_o2(
+            quadr, (aa, bb) = Search.quadrangle_o1(
                 point, mesh,
                 first_guess=(Public.aa, Public.bb)
             )
             Public.aa, Public.bb = aa, bb
 
-        # print(point, 'in', Form.quadrangle(mesh, (Public.aa, Public.bb)))
+        #  print(point, 'in', Form.quadrangle(mesh, (Public.aa, Public.bb)))
 
         tri1 = Triangle(quadr.p1, quadr.p2, quadr.p4)
         tri2 = Triangle(quadr.p2, quadr.p3, quadr.p4)
@@ -957,6 +891,17 @@ class Interp:
     '''
     Interpolation algorithms.
     '''
+    def inverse_distance_weighting(point, triangle):
+        d1 = Arc(point, triangle.p1).distance()
+        d2 = Arc(point, triangle.p2).distance()
+        d3 = Arc(point, triangle.p3).distance()
+
+        weight1 = 1/d1 / (1/d1 + 1/d2 + 1/d3)
+        weight2 = 1/d2 / (1/d1 + 1/d2 + 1/d3)
+        weight3 = 1/d3 / (1/d1 + 1/d2 + 1/d3)
+
+        return weight1, weight2, weight3
+
     def barycentric(point, triangle):
         ''' (point, triangle) -> weight1, weight2, weight3
 
@@ -1011,6 +956,14 @@ class Interp:
             A2 = tri2.area()
             A3 = tri3.area()
 
+        #  tri1 = Triangle(point, triangle.p2, triangle.p3)
+        #  tri2 = Triangle(point, triangle.p1, triangle.p3)
+        #  tri3 = Triangle(point, triangle.p1, triangle.p2)
+
+        #  A1 = tri1.area()
+        #  A2 = tri2.area()
+        #  A3 = tri3.area()
+
         if A1 < 0:
             raise ValueError('A1 < 0')
         if A2 < 0:
@@ -1019,6 +972,23 @@ class Interp:
             raise ValueError('A3 < 0')
 
         A = A1 + A2 + A3
+
+        if A == 0:
+            d1 = Arc(point, triangle.p1).distance()
+            d2 = Arc(point, triangle.p2).distance()
+            d3 = Arc(point, triangle.p3).distance()
+
+            weight1 = 1/d1 / (1/d1 + 1/d2 + 1/d3)
+            weight2 = 1/d2 / (1/d1 + 1/d2 + 1/d3)
+            weight3 = 1/d3 / (1/d1 + 1/d2 + 1/d3)
+
+            #  print('A1 = ', A1)
+            #  print('A2 = ', A2)
+            #  print('A3 = ', A3)
+            #  print(point, triangle.p1, triangle.p2, triangle.p3)
+            #  embed()
+            #  raise ValueError('A = 0')
+
         # A_tri = triangle.area()
 
         # if not Check.is_close_enough(A, A_tri):
@@ -1027,27 +997,6 @@ class Interp:
         #     raise ValueError(
         #               'The triangle is too big for barycentric interpolation!'
         #           )
-
-        if A <= 0:
-            d1 = Arc(point, triangle.p1).distance()
-            d2 = Arc(point, triangle.p2).distance()
-            d3 = Arc(point, triangle.p3).distance()
-            dd = d1 + d2 + d3
-            weight1 = (dd-d1) / dd / 2
-            weight2 = (dd-d2) / dd / 2
-            weight3 = (dd-d3) / dd / 2
-            #  if d1 > d2 and d1 > d3:
-            #      weight1 = 1
-            #      weight2 = 0
-            #      weight3 = 0
-            #  elif d2 > d1 and d2 > d3:
-            #      weight1 = 0
-            #      weight2 = 1
-            #      weight3 = 0
-            #  elif d3 > d1 and d3 > d2:
-            #      weight1 = 0
-            #      weight2 = 0
-            #      weight3 = 1
         else:
             weight1 = A1 / A
             weight2 = A2 / A
@@ -1116,7 +1065,8 @@ class Interp:
                             p_new, mesh_old, first_time=Public.first_search
                         )
 
-                        weights[:, i, jm] = Interp.barycentric(p_new, tri)
+                        #  weights[:, i, jm] = Interp.barycentric(p_new, tri)
+                        weights[:, i, jm] = Interp.inverse_distance_weighting(p_new, tri)
                         lat_index[:, i, jm] = (
                             p1_lat_index, p2_lat_index, p3_lat_index
                         )
