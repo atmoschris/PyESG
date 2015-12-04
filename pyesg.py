@@ -385,8 +385,8 @@ class Quadrangle(object):
         arc2 = Arc(p2, p3)
         arc3 = Arc(p3, p4)
         arc4 = Arc(p4, p1)
-        if Check.is_same_great_circle(arc1, arc2) or Check.is_same_great_circle(arc1, arc3) or Check.is_same_great_circle(arc1, arc4) or Check.is_same_great_circle(arc2, arc3) or Check.is_same_great_circle(arc3, arc4):
-            raise ValueError('Three of the given four points are on the same great circle!')
+        #  if Check.is_same_great_circle(arc1, arc2) or Check.is_same_great_circle(arc1, arc3) or Check.is_same_great_circle(arc1, arc4) or Check.is_same_great_circle(arc2, arc3) or Check.is_same_great_circle(arc3, arc4):
+        #      raise ValueError('Three of the given four points are on the same great circle!')
 
         self.p1 = p1
         self.p2 = p2
