@@ -723,6 +723,61 @@ class Check:
 
 class Search:
 
+    def closest_grid_bm(point, mesh):
+        d_min = 1e9
+        nlat = mesh.lat2d.shape[0]
+        nlon = mesh.lat2d.shape[1]
+        last_guess = (0, 0)
+
+        for i in np.arange(nlat-1):
+            for j in np.arange(nlon-1):
+                pt_test = Point(mesh.lat2d[i,j], mesh.lon2d[i,j])
+                #  d_test = (point.lat_deg() - pt_test.lat_deg())**2 + (point.lon_deg() - pt_test.lon_deg())**2
+                d_test = Arc(point, pt_test).distance()
+                if d_test < d_min:
+                    last_guess = (i, j)
+                    d_min = d_test
+
+        return last_guess
+
+    def closest_grid_o1(point, mesh):
+        d_min = 1e9
+        nlat = mesh.lat2d.shape[0]
+        nlon = mesh.lat2d.shape[1]
+
+        first_guess = (0, 0)
+        guess = first_guess
+
+        test_time = 0
+        last_test_is_bad = True
+        max_time = 1e4
+
+        while test_time < max_time:
+
+            pt_test = Point(mesh.lat2d[guess[0], guess[1]], mesh.lon2d[guess[0], guess[1]])
+            #  d_test = (point.lat_deg() - pt_test.lat_deg())**2 + (point.lon_deg() - pt_test.lon_deg())**2
+            d_test = Arc(point, pt_test).distance()
+            if d_test < d_min:
+                last_guess = guess
+                d_min = d_test
+                last_test_is_bad = False
+            else:
+                if last_test_is_bad:
+                    test_time = max_time
+                else:
+                    last_test_is_bad = True
+
+            if test_time % 2 == 0:
+                guess = Move.right(last_guess)
+            else:
+                guess = Move.up(last_guess)
+
+            test_time += 1
+            if test_time == max_time:
+                raise ValueError('Search cloest grid failed!')
+
+        return last_guess
+
     def quadrangle_bm(point, mesh):
         '''
         [bench mark algorithm]
@@ -849,6 +904,95 @@ class Search:
                 np.savetxt('mesh_lon2d.dat', mesh.lon2d, '%.9f')
             raise ValueError('Quadrangle searching failed!')
 
+    def quadrangle_o2_bm(point, mesh):
+        last_guess = Search.closest_grid_bm(point, mesh)
+        guess1 = last_guess
+        guess2 = Move.left(guess1)
+        guess3 = Move.down(guess2)
+        guess4 = Move.right(guess3)
+
+        quadr1 = Form.quadrangle(mesh, guess1)
+        quadr2 = Form.quadrangle(mesh, guess2)
+        quadr3 = Form.quadrangle(mesh, guess3)
+        quadr4 = Form.quadrangle(mesh, guess4)
+
+        if Check.is_inside_quadrangle(point, quadr1):
+            quadr = quadr1
+            aa, bb = guess1[0], guess1[1]
+        elif Check.is_inside_quadrangle(point, quadr2):
+            quadr = quadr2
+            aa, bb = guess2[0], guess2[1]
+        elif Check.is_inside_quadrangle(point, quadr3):
+            quadr = quadr3
+            aa, bb = guess3[0], guess3[1]
+        elif Check.is_inside_quadrangle(point, quadr4):
+            quadr = quadr4
+            aa, bb = guess4[0], guess4[1]
+        else:
+            print(point)
+            print(last_guess)
+            raise ValueError("Search quadrangle failed!")
+
+        return quadr, (aa, bb)
+
+    def quadrangle_o2(point, mesh):
+        last_guess = Search.closest_grid_o1(point, mesh)
+
+        guess1 = last_guess
+        guess2 = Move.left(guess1)
+        guess3 = Move.down(guess2)
+        guess4 = Move.right(guess3)
+
+        quadr1 = Form.quadrangle(mesh, guess1)
+        quadr2 = Form.quadrangle(mesh, guess2)
+        quadr3 = Form.quadrangle(mesh, guess3)
+        quadr4 = Form.quadrangle(mesh, guess4)
+
+        if Check.is_inside_quadrangle(point, quadr1):
+            quadr = quadr1
+            aa, bb = guess1[0], guess1[1]
+        elif Check.is_inside_quadrangle(point, quadr2):
+            quadr = quadr2
+            aa, bb = guess2[0], guess2[1]
+        elif Check.is_inside_quadrangle(point, quadr3):
+            quadr = quadr3
+            aa, bb = guess3[0], guess3[1]
+        elif Check.is_inside_quadrangle(point, quadr4):
+            quadr = quadr4
+            aa, bb = guess4[0], guess4[1]
+        else:
+            last_guess = Search.closest_grid_bm(point, mesh)
+
+            guess1 = last_guess
+            guess2 = Move.left(guess1)
+            guess3 = Move.down(guess2)
+            guess4 = Move.right(guess3)
+
+            quadr1 = Form.quadrangle(mesh, guess1)
+            quadr2 = Form.quadrangle(mesh, guess2)
+            quadr3 = Form.quadrangle(mesh, guess3)
+            quadr4 = Form.quadrangle(mesh, guess4)
+
+            if Check.is_inside_quadrangle(point, quadr1):
+                quadr = quadr1
+                aa, bb = guess1[0], guess1[1]
+            elif Check.is_inside_quadrangle(point, quadr2):
+                quadr = quadr2
+                aa, bb = guess2[0], guess2[1]
+            elif Check.is_inside_quadrangle(point, quadr3):
+                quadr = quadr3
+                aa, bb = guess3[0], guess3[1]
+            elif Check.is_inside_quadrangle(point, quadr4):
+                quadr = quadr4
+                aa, bb = guess4[0], guess4[1]
+            else:
+                print(point)
+                print(last_guess)
+                embed()
+                raise ValueError("Search quadrangle failed!")
+
+        return quadr, (aa, bb)
+
     def triangle(point, mesh, first_time=True):
         '''
         Search the triangle which the point located in.
@@ -891,7 +1035,7 @@ class Interp:
     '''
     Interpolation algorithms.
     '''
-    def inverse_distance_weighting(point, triangle):
+    def inverse_distance_weighting_tri(point, triangle):
         d1 = Arc(point, triangle.p1).distance()
         d2 = Arc(point, triangle.p2).distance()
         d3 = Arc(point, triangle.p3).distance()
@@ -901,6 +1045,21 @@ class Interp:
         weight3 = 1/d3 / (1/d1 + 1/d2 + 1/d3)
 
         return weight1, weight2, weight3
+
+    def inverse_distance_weighting_quadr(point, quadr):
+        d1 = Arc(point, quadr.p1).distance()
+        d2 = Arc(point, quadr.p2).distance()
+        d3 = Arc(point, quadr.p3).distance()
+        d4 = Arc(point, quadr.p4).distance()
+
+        total = 1/d1 + 1/d2 + 1/d3 + 1/d4
+
+        weight1 = 1/d1 / total
+        weight2 = 1/d2 / total
+        weight3 = 1/d3 / total
+        weight4 = 1/d4 / total
+
+        return weight1, weight2, weight3, weight4
 
     def barycentric(point, triangle):
         ''' (point, triangle) -> weight1, weight2, weight3
@@ -956,55 +1115,11 @@ class Interp:
             A2 = tri2.area()
             A3 = tri3.area()
 
-        #  tri1 = Triangle(point, triangle.p2, triangle.p3)
-        #  tri2 = Triangle(point, triangle.p1, triangle.p3)
-        #  tri3 = Triangle(point, triangle.p1, triangle.p2)
-
-        #  A1 = tri1.area()
-        #  A2 = tri2.area()
-        #  A3 = tri3.area()
-
-        if A1 < 0:
-            raise ValueError('A1 < 0')
-        if A2 < 0:
-            raise ValueError('A2 < 0')
-        if A3 < 0:
-            raise ValueError('A3 < 0')
-
         A = A1 + A2 + A3
 
-        if A == 0:
-            d1 = Arc(point, triangle.p1).distance()
-            d2 = Arc(point, triangle.p2).distance()
-            d3 = Arc(point, triangle.p3).distance()
-
-            weight1 = 1/d1 / (1/d1 + 1/d2 + 1/d3)
-            weight2 = 1/d2 / (1/d1 + 1/d2 + 1/d3)
-            weight3 = 1/d3 / (1/d1 + 1/d2 + 1/d3)
-
-            #  print('A1 = ', A1)
-            #  print('A2 = ', A2)
-            #  print('A3 = ', A3)
-            #  print(point, triangle.p1, triangle.p2, triangle.p3)
-            #  embed()
-            #  raise ValueError('A = 0')
-
-        # A_tri = triangle.area()
-
-        # if not Check.is_close_enough(A, A_tri):
-        #     print(A_tri - A)
-        #     print(Check.is_inside_triangle(point, triangle))
-        #     raise ValueError(
-        #               'The triangle is too big for barycentric interpolation!'
-        #           )
-        else:
-            weight1 = A1 / A
-            weight2 = A2 / A
-            weight3 = A3 / A
-
-        if np.abs(weight1 + weight2 + weight3 - 1) > 0.1:
-            print(weight1 + weight2 + weight3)
-            raise ValueError('Sum of weights is not 1!!!')
+        weight1 = A1 / A
+        weight2 = A2 / A
+        weight3 = A3 / A
 
         return weight1, weight2, weight3
 
@@ -1025,13 +1140,14 @@ class Interp:
         nlat_new = mesh_new.lat2d.shape[0]
         nlon_new = mesh_new.lat2d.shape[1]
 
-        weights = np.ndarray(shape=(3, nlat_new, nlon_new))
+        num_pts = 4
+        weights = np.ndarray(shape=(num_pts, nlat_new, nlon_new))
         weights[:, :, :] = System.undef
 
-        lat_index = np.ndarray(shape=(3, nlat_new, nlon_new))
+        lat_index = np.ndarray(shape=(num_pts, nlat_new, nlon_new))
         lat_index[:, :, :] = System.undef
 
-        lon_index = np.ndarray(shape=(3, nlat_new, nlon_new))
+        lon_index = np.ndarray(shape=(num_pts, nlat_new, nlon_new))
         lon_index[:, :, :] = System.undef
 
         click.secho('Runing regrid...', fg='green')
@@ -1066,7 +1182,7 @@ class Interp:
                         )
 
                         #  weights[:, i, jm] = Interp.barycentric(p_new, tri)
-                        weights[:, i, jm] = Interp.inverse_distance_weighting(p_new, tri)
+                        weights[:, i, jm] = Interp.inverse_distance_weighting_tri(p_new, tri)
                         lat_index[:, i, jm] = (
                             p1_lat_index, p2_lat_index, p3_lat_index
                         )
@@ -1113,6 +1229,39 @@ class Interp:
                             p1_lon_index, p2_lon_index, p3_lon_index
                         )
 
+        elif method == 'optimized':
+
+            pbar = progressbar.ProgressBar()
+            for i in pbar(np.arange(nlat_new)):
+                for j in np.arange(nlon_new):
+
+                    p_new = Point(mesh_new.lat2d[i, j], mesh_new.lon2d[i, j])
+                    p_old = Point(mesh_old.lat2d[i, j], mesh_old.lon2d[i, j])
+
+                    if Check.is_equal(p_new, p_old):
+                        continue
+
+                    else:
+                        quadr, (aa, bb) = Search.quadrangle_o1(p_new, mesh_old, first_guess=(i,j))
+                        #  quadr, (aa, bb) = Search.quadrangle_o2(p_new, mesh_old)
+                        #  quadr, (aa, bb) = Search.quadrangle_o2_bm(p_new, mesh_old)
+
+                        cc = aa + 1
+                        dd = bb + 1
+
+                        (p1_lat_index, p1_lon_index) = (aa, bb)
+                        (p2_lat_index, p2_lon_index) = (aa, dd)
+                        (p3_lat_index, p3_lon_index) = (cc, dd)
+                        (p4_lat_index, p4_lon_index) = (cc, bb)
+
+                        weights[:, i, j] = Interp.inverse_distance_weighting_quadr(p_new, quadr)
+                        lat_index[:, i, j] = (
+                            p1_lat_index, p2_lat_index, p3_lat_index, p4_lat_index
+                        )
+                        lon_index[:, i, j] = (
+                            p1_lon_index, p2_lon_index, p3_lon_index, p4_lon_index
+                        )
+
         else:
             raise ValueError('Wrong regrid method!')
 
@@ -1125,45 +1274,45 @@ class Move:
     the index of the lower left corner of the quadrangle.
     '''
 
-    def lower_left(ll_corner):
+    def lower_left(ll_corner, step=1):
         aa = ll_corner[0]
         bb = ll_corner[1]
-        return (aa-1, bb-1)
+        return (aa-step, bb-step)
 
-    def lower_right(ll_corner):
+    def lower_right(ll_corner, step=1):
         aa = ll_corner[0]
         bb = ll_corner[1]
-        return (aa-1, bb+1)
+        return (aa-step, bb+step)
 
-    def upper_left(ll_corner):
+    def upper_left(ll_corner, step=1):
         aa = ll_corner[0]
         bb = ll_corner[1]
-        return (aa+1, bb-1)
+        return (aa+step, bb-step)
 
-    def upper_right(ll_corner):
+    def upper_right(ll_corner, step=1):
         aa = ll_corner[0]
         bb = ll_corner[1]
-        return (aa+1, bb+1)
+        return (aa+step, bb+step)
 
-    def up(ll_corner):
+    def up(ll_corner, step=1):
         aa = ll_corner[0]
         bb = ll_corner[1]
-        return (aa+1, bb)
+        return (aa+step, bb)
 
-    def down(ll_corner):
+    def down(ll_corner, step=1):
         aa = ll_corner[0]
         bb = ll_corner[1]
-        return (aa-1, bb)
+        return (aa-step, bb)
 
-    def left(ll_corner):
+    def left(ll_corner, step=1):
         aa = ll_corner[0]
         bb = ll_corner[1]
-        return (aa, bb-1)
+        return (aa, bb-step)
 
-    def right(ll_corner):
+    def right(ll_corner, step=1):
         aa = ll_corner[0]
         bb = ll_corner[1]
-        return (aa, bb+1)
+        return (aa, bb+step)
 
 
 class Form:
